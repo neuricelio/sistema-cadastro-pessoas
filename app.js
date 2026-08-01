@@ -267,14 +267,6 @@ app.post('/excluir/:id', soLogado, async (req, res) => {
   res.redirect('/busca');
 });
 
-// ------------------------------
-// INICIAR SERVIDOR
-// ------------------------------
-app.listen(porta, () => {
-  console.log(`✅ Sistema rodando em http://localhost:${porta}`);
-  console.log(`🔑 Login: admin / Senha: admin123`);
-});
-
 //===============================================================================================
 
 // CRIA TODAS AS TABELAS AUTOMATICAMENTE — USE UMA VEZ SÓ
