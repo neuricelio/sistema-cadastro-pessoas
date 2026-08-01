@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Busca de Pessoas</title>
+  <link rel="stylesheet" href="/estilo.css">
+</head>
+<body>
+  <div class="container caixa-login">
+    <h2>Busca de Pessoas</h2>
+
+    <div class="grupo">
+      <label>Digite o nome ou parte do nome:</label>
+      <input type="text" id="campoBusca" placeholder="Ex: Silva" autocomplete="off">
+    </div>
+
+    <div id="listaResultados" style="margin-top:10px;">
+      <div class="item-busca">Comece a digitar para ver os resultados...</div>
+    </div>
+
+    <div class="botoes" style="margin-top:15px;">
+      <a href="/inicial" class="btn">Voltar</a>
+      <a href="/sair" class="btn btn-sair">Sair</a>
+    </div>
+  </div>
+
+<script src="/script.js"></script>
+<script>
+let timer;
+document.getElementById('campoBusca').addEventListener('input', e => {
+  clearTimeout(timer);
+  const termo = e.target.value.trim();
+  const lista = document.getElementById('listaResultados');
+
+  if (!termo) {
+    lista.innerHTML = '<div class="item-busca">Comece a digitar para ver os resultados...</div>';
+    return;
+  }
+
+  timer = setTimeout(() => {
+    fetch(`/buscar-nomes?nome=${encodeURIComponent(termo)}`)
+      .then(res => res.json())
+      .then(dados => {
+        if (dados.length === 0) {
+          lista.innerHTML = '<div class="item-busca">Nenhum cadastro encontrado</div>';
+          return;
+        }
+        lista.innerHTML = '';
+        dados.forEach(p => {
+          const div = document.createElement('div');
+          div.className = 'item-busca';
+          div.textContent = p.nome;
+          div.onclick = () => window.location = `/ver/${p.id}`;
+          lista.appendChild(div);
+        });
+      });
+  }, 300);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Cadastrar Usuário</title>
+  <link rel="stylesheet" href="/estilo.css">
+</head>
+<body class="tela-login">
+  <div class="caixa-login">
+    <h2>Cadastrar Novo Usuário</h2>
+
+    <% if(erro) { %>
+      <div class="erro"><%= erro %></div>
+    <% } %>
+
+    <form method="post" action="/cadastrar-usuario">
+      <div class="grupo">
+        <label>Login:</label>
+        <input type="text" name="login" required>
+      </div>
+      <div class="grupo">
+        <label>Nome Completo:</label>
+        <input type="text" name="nome">
+      </div>
+      <div class="grupo">
+        <label>Senha:</label>
+        <input type="password" name="senha" required minlength="6">
+      </div>
+
+
+      <div class="grupo">
+      <label>Nível:</label>
+      <% if(usuarioLogado && usuarioLogado.nivel === 'admin'){ %>
+        <select name="nivel">
+          <option value="usuario">Usuário</option>
+          <option value="admin">Administrador</option>
+        </select>
+      <% } else { %>
+        <input type="text" value="Usuário Comum" disabled>
+        <input type="hidden" name="nivel" value="usuario">
+      <% } %>
+    </div>
+
+
+      <button type="submit">Cadastrar</button>
+    </form>
+
+    <a href="/" class="botao-cadastrar" style="background:#6b7280;">Voltar ao Login</a>
+  </div>
+</body>
+</html>

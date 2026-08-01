@@ -1,0 +1,369 @@
+* { margin:0; padding:0; box-sizing:border-box; font-family:Arial, sans-serif; }
+body { 
+  background:#f0f4f8; 
+  color:#333; 
+  padding:10px;
+  font-size:13px;
+}
+
+.container { 
+  max-width:1150px; 
+  margin:0 auto; 
+  background:#fff; 
+  padding:15px;
+  border-radius:8px; 
+  box-shadow:0 0 10px rgba(0,0,0,0.1); 
+}
+
+.cabecalho { 
+  display:flex; 
+  justify-content:flex-start; 
+  align-items:center; 
+  margin-bottom:10px;
+  border-bottom:1px solid #ddd; 
+  padding-bottom:8px; 
+}
+h2 { font-size:18px; margin:0; }
+h3,h4 { font-size:14px; margin-bottom:8px; margin-top:12px; color:#2c3e50; }
+
+.menu-abas { 
+  display:flex; 
+  gap:4px; 
+  margin-bottom:10px; 
+  border-bottom:2px solid #ddd; 
+  padding-bottom:3px; 
+}
+.aba { 
+  background:#ecf0f1; 
+  border:none; 
+  padding:6px 14px; 
+  border-radius:4px 4px 0 0; 
+  cursor:pointer; 
+  font-weight:bold; 
+  color:#555; 
+  font-size:13px;
+}
+.aba.ativa { background:#2980b9; color:white; }
+.conteudo-aba { display:none; padding:0; }
+.conteudo-aba.ativa { display:block; }
+
+.area-principal { display:flex; gap:15px; flex-wrap:wrap; align-items:flex-start; }
+.dados-form { flex:2; min-width:480px; }
+.caixa-fotos { 
+  flex:1; min-width:200px; max-width:240px;
+  background:#f9f9f9; padding:10px; border-radius:8px; border:1px solid #ddd;
+}
+.preview-fotos,
+#fotos-salvas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.miniatura {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.linha { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:8px; }
+.grupo { margin-bottom:0; }
+.grupo label { display:block; margin-bottom:3px; font-weight:bold; font-size:12px; }
+.grupo.pequeno { flex:0 0 110px; }
+.grupo.medio  { flex:0 0 170px; }
+.grupo.largo  { flex:2; min-width:280px; }
+.grupo.grande { flex:3; min-width:350px; }
+
+input,textarea,button { 
+  width:100%; 
+  padding:5px 7px; 
+  border:1px solid #ccc; 
+  border-radius:4px; 
+  font-size:13px; 
+}
+input[type="date"] { padding:4px 7px; }
+textarea { resize:vertical; min-height:60px; }
+
+.linha-processo { 
+  display:flex; 
+  gap:8px; 
+  align-items:flex-end; 
+  flex-wrap:wrap; 
+  margin-bottom:8px; 
+  padding-bottom:8px; 
+  border-bottom:1px dashed #eee;
+}
+/* Define tamanhos fixos e proporcionais */
+.linha-processo input[name="proc_numero"]    { width:220px; }  /* Número mais largo */
+.linha-processo input[name="proc_data"]      { width:140px; }  /* Data */
+.linha-processo input[name="proc_tipificacao"] { width:200px; } /* Tipificação */
+.linha-processo input[name="proc_descricao"] { flex:1; min-width:250px; } /* Descrição ocupa o resto */
+
+.botoes { margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; }
+.btn { 
+  display:inline-block; padding:6px 12px; font-size:13px;
+  border-radius:4px; text-decoration:none; color:white;
+  background:#2980b9; border:none; cursor:pointer; font-weight:normal;
+  width:auto;
+}
+.btn:hover { filter:brightness(0.92); }
+.btn-amarelo { background:#f39c12; }
+.btn-vermelho { background:#e74c3c; }
+.btn-sair { background:#7f8c8d; }
+.btn-foto { width:100%; margin-bottom:8px; }
+.btn-remover { width:auto; padding:6px 12px; font-size:15px; }
+
+/* ITENS DA BUSCA */
+.item-busca {
+  padding: 8px 10px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-size:13px;
+  text-align: left;
+}
+.item-busca:hover {
+  background: #ecf0f1;
+  padding-left:14px;
+}
+
+/* ==============================================
+   TELA DE LOGIN - ESTILO CORRIGIDO E PADRONIZADO
+============================================== */
+body.tela-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff; /* Fundo branco, igual solicitado */
+  padding: 15px;
+}
+
+body.tela-login .caixa-login {
+  width: 100%;
+  max-width: 380px;
+  background: #ffffff;
+  padding: 25px 20px;
+  border-radius: 8px; /* Mesmo raio das outras telas */
+  box-shadow: 0 0 10px rgba(0,0,0,0.1); /* Mesma sombra das outras telas */
+  text-align: center;
+}
+
+body.tela-login .caixa-login h2 {
+  color: #2c3e50;
+  margin-bottom: 18px;
+  font-size: 18px; /* Mesmo tamanho do restante */
+  padding-bottom: 8px;
+  border-bottom: 1px solid #ddd; /* Linha igual aos cabeçalhos */
+}
+
+body.tela-login .erro {
+  background: #fdecea;
+  color: #c0392b;
+  padding: 6px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  border-left: 3px solid #e74c3c;
+  text-align: left;
+}
+
+body.tela-login .grupo {
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+body.tela-login .grupo label {
+  display: block;
+  margin-bottom: 3px;
+  font-weight: bold;
+  color: #333;
+  font-size: 12px; /* Mesmo tamanho das labels */
+}
+
+body.tela-login .caixa-login input {
+  padding: 5px 7px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+body.tela-login .caixa-login input:focus {
+  outline: none;
+  border-color: #2980b9;
+}
+
+body.tela-login .caixa-login button {
+  width: 100%;
+  padding: 6px;
+  background: #2980b9;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+body.tela-login .caixa-login button:hover {
+  filter: brightness(0.92);
+}
+
+/* Padroniza também a caixa da tela de busca */
+.container.caixa-login {
+  max-width: 380px;
+  margin: 30px auto;
+}
+/* CAMPOS NO MODO VISUALIZAÇÃO */
+.campo-visualizar {
+  padding: 5px 7px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  background: #f9f9f9;
+  font-size: 13px;
+  color: #444;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+/* Data e Hora fixa inferior esquerdo */
+.data-hora-rodape {
+  position: fixed;
+  bottom: 15px;
+  left: 15px;
+  font-size: 13px;
+  color: #555;
+  background: transparent;
+  padding: 5px 10px;
+  border: none;
+  z-index: 100;
+}
+/* ---------- TELA INICIAL / PAINEL PRINCIPAL ---------- */
+.painel {
+  max-width: 500px;
+  margin: 80px auto;
+  text-align: center;
+  padding: 30px;
+}
+
+.info-topo {
+  margin-bottom: 40px;
+  color: #333;
+}
+
+.info-topo h3 {
+  margin: 5px 0;
+  font-weight: normal;
+}
+
+.grupo-botoes {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.grupo-botoes .btn {
+  padding: 12px;
+  font-size: 16px;
+}
+
+.data-hora-rodape {
+  position: fixed;
+  bottom: 15px;
+  left: 15px;
+  font-size: 14px;
+  color: #555;
+  background: rgba(255,255,255,0.9);
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+/* ---------- TELA DE LOGIN ---------- */
+.tela-login {
+  background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+.caixa-login {
+  background: white;
+  padding: 35px;
+  border-radius: 10px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+  width: 100%;
+  max-width: 400px;
+}
+
+.caixa-login h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  color: #1e3a8a;
+}
+
+.erro {
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.grupo {
+  margin-bottom: 18px;
+}
+
+.grupo label {
+  display: block;
+  margin-bottom: 5px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.grupo input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 5px;
+  font-size: 15px;
+}
+
+.caixa-login button {
+  width: 100%;
+  padding: 12px;
+  background: #1e40af;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.caixa-login button:hover {
+  background: #1e3a8a;
+}
+
+.botao-cadastrar {
+  display: block;
+  text-align: center;
+  padding: 10px;
+  background: #16a34a;
+  color: white !important;
+  text-decoration: none;
+  border-radius: 5px;
+  font-size: 15px;
+}
+
+.botao-cadastrar:hover {
+  background: #15803d;
+}

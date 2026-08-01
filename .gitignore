@@ -1,0 +1,6 @@
+# Não envia esses arquivos/pastas
+node_modules/
+banco.sqlite
+.DS_Store
+*.log
+.env
