@@ -150,21 +150,6 @@ app.post('/cadastrar-usuario', async (req, res) => {
   }
 });
 
-// ✅ ROTA TEMPORÁRIA: cria admin se não existir — APAGUE DEPOIS DE USAR!
-app.get('/criar-admin', async (req, res) => {
-  try {
-    const [existe] = await bd.execute(`SELECT id FROM usuarios WHERE login = ?`, ['admin']);
-    if (existe.length > 0) {
-      return res.send('✅ Admin já existe! Vá para a página inicial e faça login. <a href="/">Ir para login</a>');
-    }
-    const hash = await bcrypt.hash('admin123', 10);
-    await bd.execute(`INSERT INTO usuarios (login, senha, nivel) VALUES (?, ?, ?)`, ['admin', hash, 'admin']);
-    res.send('✅ Admin criado com sucesso! Login: <b>admin</b> / Senha: <b>admin123</b> <br><a href="/">Ir para login</a> <br><br>⚠️ APAGUE ESSA ROTA DO CÓDIGO DEPOIS DE USAR POR SEGURANÇA!');
-  } catch(e) {
-    res.send('❌ Erro: ' + e.message);
-  }
-});
-
 app.get('/', (req, res) => res.render('login', { erro: undefined, sucesso: req.query.sucesso || null }));
 
 app.post('/logar', async (req, res) => {
@@ -191,6 +176,74 @@ app.get('/inicial', soLogado, (req, res) => {
 app.get('/sair', (req, res) => {
   req.session.destroy();
   res.redirect('/');
+});
+
+// ------------------------------
+// ROTAS TEMPORÁRIAS — USE UMA VEZ SÓ, DEPOIS APAGUE!
+// ------------------------------
+app.get('/criar-tabelas', async (req, res) => {
+  try {
+    await bd.execute(`
+    CREATE TABLE IF NOT EXISTS usuarios (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      login VARCHAR(50) UNIQUE NOT NULL,
+      senha VARCHAR(255) NOT NULL,
+      nome VARCHAR(100),
+      nivel ENUM('admin','usuario') DEFAULT 'usuario'
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    await bd.execute(`
+    CREATE TABLE IF NOT EXISTS pessoas (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      siapen VARCHAR(20), nome VARCHAR(150) NOT NULL,
+      cpf CHAR(14) UNIQUE NOT NULL, rg VARCHAR(20),
+      nascimento DATE, mae VARCHAR(150), pai VARCHAR(150),
+      cep CHAR(10), rua VARCHAR(150), numero VARCHAR(10),
+      bairro VARCHAR(100), cidade VARCHAR(100), uf CHAR(2),
+      complemento VARCHAR(100), processo_unificado VARCHAR(50),
+      pena_total VARCHAR(20), data_progressao DATE,
+      fotos TEXT, ativo TINYINT DEFAULT 1
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    await bd.execute(`
+    CREATE TABLE IF NOT EXISTS processos_originais (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      id_processo_unificado INT NOT NULL,
+      numero VARCHAR(50), data DATE,
+      tipificacao TEXT, descricao TEXT,
+      FOREIGN KEY (id_processo_unificado) REFERENCES pessoas(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    await bd.execute(`
+    CREATE TABLE IF NOT EXISTS auditoria (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      usuario VARCHAR(50), acao VARCHAR(50),
+      id_pessoa INT, dados_anteriores TEXT, dados_novos TEXT,
+      data_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    res.send('✅ TODAS AS TABELAS CRIADAS COM SUCESSO! <br><br><a href="/criar-admin">Criar usuário admin</a>');
+  } catch (e) {
+    res.send('❌ ERRO: ' + e.message);
+  }
+});
+
+app.get('/criar-admin', async (req, res) => {
+  try {
+    const [existe] = await bd.execute(`SELECT id FROM usuarios WHERE login = ?`, ['admin']);
+    if (existe.length > 0) {
+      return res.send('✅ Admin já existe! <br><br><a href="/">Ir para login</a>');
+    }
+    const hash = await bcrypt.hash('admin123', 10);
+    await bd.execute(`INSERT INTO usuarios (login, senha, nivel) VALUES (?, ?, ?)`, ['admin', hash, 'admin']);
+    res.send('✅ Usuário admin criado com sucesso! <br><br>🔑 Login: <b>admin</b><br>🔒 Senha: <b>admin123</b><br><br><a href="/">Ir para login</a>');
+  } catch (e) {
+    res.send('❌ ERRO: ' + e.message);
+  }
 });
 
 // ------------------------------
@@ -308,161 +361,9 @@ app.post('/excluir/:id', soLogado, async (req, res) => {
   res.redirect('/busca');
 });
 
-// ------------------------------
-// ROTA TEMPORÁRIA: CRIAR TABELAS — APAGUE DEPOIS DE USAR!
-// ------------------------------
-app.get('/criar-tabelas', async (req, res) => {
-  try {
-    await bd.execute(`
-    CREATE TABLE IF NOT EXISTS usuarios (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      login VARCHAR(50) UNIQUE NOT NULL,
-      senha VARCHAR(255) NOT NULL,
-      nome VARCHAR(100),
-      nivel ENUM('admin','usuario') DEFAULT 'usuario'
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-    `);
-
-    await bd.execute(`
-    CREATE TABLE IF NOT EXISTS pessoas (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      siapen VARCHAR(20), nome VARCHAR(150) NOT NULL,
-      cpf CHAR(14) UNIQUE NOT NULL, rg VARCHAR(20),
-      nascimento DATE, mae VARCHAR(150), pai VARCHAR(150),
-      cep CHAR(10), rua VARCHAR(150), numero VARCHAR(10),
-      bairro VARCHAR(100), cidade VARCHAR(100), uf CHAR(2),
-      complemento VARCHAR(100), processo_unificado VARCHAR(50),
-      pena_total VARCHAR(20), data_progressao DATE,
-      fotos TEXT, ativo TINYINT DEFAULT 1
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-    `);
-
-    await bd.execute(`
-    CREATE TABLE IF NOT EXISTS processos_originais (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      id_processo_unificado INT NOT NULL,
-      numero VARCHAR(50), data DATE,
-      tipificacao TEXT, descricao TEXT,
-      FOREIGN KEY (id_processo_unificado) REFERENCES pessoas(id) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-    `);
-
-    await bd.execute(`
-    CREATE TABLE IF NOT EXISTS auditoria (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      usuario VARCHAR(50), acao VARCHAR(50),
-      id_pessoa INT, dados_anteriores TEXT, dados_novos TEXT,
-      data_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-    `);
-
-    res.send('✅ TODAS AS TABELAS CRIADAS COM SUCESSO! <br><br>⚠️ AGORA APAGUE ESSA ROTA DO CÓDIGO POR SEGURANÇA. <br><a href="/">Ir para login</a>');
-  } catch (e) {
-    res.send('ERRO: ' + e.message);
-  }
-});
-// ✅ ROTA TEMPORÁRIA: cria admin — APAGUE DEPOIS DE USAR!
-app.get('/criar-admin', async (req, res) => {
-  try {
-    const [existe] = await bd.execute(`SELECT id FROM usuarios WHERE login = ?`, ['admin']);
-    if (existe.length > 0) {
-      return res.send('✅ Admin já existe! <a href="/">Ir para login</a>');
-    }
-    const hash = await bcrypt.hash('admin123', 10);
-    await bd.execute(`INSERT INTO usuarios (login, senha, nivel) VALUES (?, ?, ?)`, ['admin', hash, 'admin']);
-    res.send('✅ Admin criado com sucesso! <br>Login: <b>admin</b> / Senha: <b>admin123</b> <br><a href="/">Ir para login</a>');
-  } catch(e) {
-    res.send('❌ Erro: ' + e.message);
-  }
-});
-
 // ===============================================================================================
-// ROTAS TEMPORÁRIAS — APAGUE DEPOIS DE USAR!
+// ✅ INICIA O SERVIDOR — ÚNICA DECLARAÇÃO DA VARIÁVEL "PORTA"
 // ===============================================================================================
-
-// CRIA TODAS AS TABELAS AUTOMATICAMENTE
-app.get('/criar-tabelas', async (req, res) => {
-  try {
-    await bd.execute(`
-    CREATE TABLE IF NOT EXISTS usuarios (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      login VARCHAR(50) UNIQUE NOT NULL,
-      senha VARCHAR(255) NOT NULL,
-      nome VARCHAR(100),
-      nivel ENUM('admin','usuario') DEFAULT 'usuario'
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-    `);
-
-    await bd.execute(`
-    CREATE TABLE IF NOT EXISTS pessoas (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      siapen VARCHAR(20), nome VARCHAR(150) NOT NULL,
-      cpf CHAR(14) UNIQUE NOT NULL, rg VARCHAR(20),
-      nascimento DATE, mae VARCHAR(150), pai VARCHAR(150),
-      cep CHAR(10), rua VARCHAR(150), numero VARCHAR(10),
-      bairro VARCHAR(100), cidade VARCHAR(100), uf CHAR(2),
-      complemento VARCHAR(100), processo_unificado VARCHAR(50),
-      pena_total VARCHAR(20), data_progressao DATE,
-      fotos TEXT, ativo TINYINT DEFAULT 1
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-    `);
-
-    await bd.execute(`
-    CREATE TABLE IF NOT EXISTS processos_originais (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      id_processo_unificado INT NOT NULL,
-      numero VARCHAR(50), data DATE,
-      tipificacao TEXT, descricao TEXT,
-      FOREIGN KEY (id_processo_unificado) REFERENCES pessoas(id) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-    `);
-
-    await bd.execute(`
-    CREATE TABLE IF NOT EXISTS auditoria (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      usuario VARCHAR(50), acao VARCHAR(50),
-      id_pessoa INT, dados_anteriores TEXT, dados_novos TEXT,
-      data_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-    `);
-
-    res.send('✅ TODAS AS TABELAS CRIADAS COM SUCESSO! <br><br><a href="/criar-admin">Criar usuário admin</a>');
-  } catch (e) {
-    res.send('❌ ERRO: ' + e.message);
-  }
-});
-
-// CRIA USUÁRIO ADMIN
-app.get('/criar-admin', async (req, res) => {
-  try {
-    const [existe] = await bd.execute(`SELECT id FROM usuarios WHERE login = ?`, ['admin']);
-    if (existe.length > 0) {
-      return res.send('✅ Admin já existe! <br><br><a href="/">Ir para login</a>');
-    }
-    const hash = await bcrypt.hash('admin123', 10);
-    await bd.execute(`INSERT INTO usuarios (login, senha, nivel) VALUES (?, ?, ?)`, ['admin', hash, 'admin']);
-    res.send('✅ Usuário admin criado com sucesso! <br><br>🔑 Login: <b>admin</b><br>🔒 Senha: <b>admin123</b><br><br><a href="/">Ir para login</a>');
-  } catch (e) {
-    res.send('❌ ERRO: ' + e.message);
-  }
-});
-
-// ===============================================================================================
-// ✅ INICIA O SERVIDOR — NÃO MEXA AQUI
-// ===============================================================================================
-const porta = process.env.PORT || process.env.RAILWAY_PORT || 3000;
-
-app.listen(porta, () => {
-  console.log(`✅ Sistema rodando na porta ${porta}`);
-}).on('error', (erro) => {
-  console.error('❌ Erro ao iniciar:', erro.message);
-  process.exit(1);
-});
-
-
-// ------------------------------
-// ✅ INICIA O SERVIDOR — SÓ EXISTE UM `app.listen` NO ARQUIVO!
-// ------------------------------
 const porta = process.env.PORT || process.env.RAILWAY_PORT || 3000;
 
 app.listen(porta, () => {
