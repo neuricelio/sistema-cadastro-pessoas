@@ -379,3 +379,18 @@ app.listen(porta, () => {
   }
   process.exit(1);
 });
+
+// ✅ ROTA TEMPORÁRIA: cria admin — APAGUE DEPOIS DE USAR!
+app.get('/criar-admin', async (req, res) => {
+  try {
+    const [existe] = await bd.execute(`SELECT id FROM usuarios WHERE login = ?`, ['admin']);
+    if (existe.length > 0) {
+      return res.send('✅ Admin já existe! <a href="/">Ir para login</a>');
+    }
+    const hash = await bcrypt.hash('admin123', 10);
+    await bd.execute(`INSERT INTO usuarios (login, senha, nivel) VALUES (?, ?, ?)`, ['admin', hash, 'admin']);
+    res.send('✅ Admin criado com sucesso! <br>Login: <b>admin</b> / Senha: <b>admin123</b> <br><a href="/">Ir para login</a>');
+  } catch(e) {
+    res.send('❌ Erro: ' + e.message);
+  }
+});
