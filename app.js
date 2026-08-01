@@ -31,8 +31,24 @@ const bd = mysql.createPool({
 // Inicializa banco e usuário admin automaticamente
 async function iniciarBanco(){
   try {
-    await bd.getConnection();
+    console.log('========================================');
+    console.log('🔍 TENTANDO CONECTAR NO BANCO DE DADOS:');
+    console.log('   DB_HOST    =', process.env.DB_HOST || '❌ NÃO DEFINIDO!');
+    console.log('   DB_PORT    =', process.env.DB_PORT || '❌ NÃO DEFINIDO!');
+    console.log('   DB_USER    =', process.env.DB_USER || '❌ NÃO DEFINIDO!');
+    console.log('   DB_NAME    =', process.env.DB_NAME || '❌ NÃO DEFINIDO!');
+    console.log('   DB_PASS    =', process.env.DB_PASS ? '✅ DEFINIDA (' + process.env.DB_PASS.length + ' caracteres)' : '❌ NÃO DEFINIDA!');
+    console.log('========================================');
+
+    // Testa conexão REAL com timeout
+    const conn = await Promise.race([
+      bd.getConnection(),
+      new Promise((_, r) => setTimeout(() => r(new Error('⏱️ TIMEOUT: banco não respondeu em 10s')), 10000))
+    ]);
+
     console.log('✅ CONECTADO AO MYSQL COM SUCESSO!');
+    console.log('   Thread ID:', conn.threadId);
+    conn.release();
 
     // Cria admin se não existir
     const [existe] = await bd.execute(`SELECT id FROM usuarios WHERE login = ?`, ['admin']);
@@ -41,9 +57,23 @@ async function iniciarBanco(){
       await bd.execute(`INSERT INTO usuarios (login, senha, nivel) VALUES (?, ?, ?)`,
         ['admin', hash, 'admin']);
       console.log('✅ Usuário admin criado: admin / admin123');
+    } else {
+      console.log('ℹ️ Usuário admin já existe, pulando criação.');
     }
+
   } catch(e) {
-    console.error('❌ ERRO NO BANCO:', e.message);
+    console.error('========================================');
+    console.error('❌ ❌ ❌ ERRO COMPLETO NO BANCO ❌ ❌ ❌');
+    console.error('========================================');
+    console.error('Código do erro  :', e.code || 'desconhecido');
+    console.error('Mensagem        :', e.message || 'sem mensagem');
+    console.error('Errno           :', e.errno || '-');
+    console.error('Syscall         :', e.syscall || '-');
+    console.error('Endereço/Host   :', e.address || '-');
+    console.error('Porta           :', e.port || '-');
+    if (e.cause) console.error('Causa raiz      :', e.cause.message || e.cause);
+    console.error('========================================');
+    // Não para o servidor — só loga para a gente ver
   }
 }
 iniciarBanco();
