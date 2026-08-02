@@ -40,6 +40,7 @@ async function iniciarBanco(){
     console.log('   DB_PASS    =', process.env.DB_PASS ? '✅ DEFINIDA (' + process.env.DB_PASS.length + ' caracteres)' : '❌ NÃO DEFINIDA!');
     console.log('========================================');
 
+    
     // Testa conexão REAL com timeout
     const conn = await Promise.race([
       bd.getConnection(),
