@@ -105,25 +105,23 @@ function soLogado(req, res, next) {
 }
 
 // ------------------------------
-// ROTAS PÚBLICAS
-// ------------------------------
-// ------------------------------
 // ROTAS PÚBLICAS / CADASTRO DE USUÁRIO
 // ------------------------------
-app.get('/cadastrar-usuario', soLogado, (req, res) => {
-  console.log('✅ ACESSO PERMITIDO a cadastrar-usuario por:', req.session.usuario.login);
+app.get('/cadastrar-usuario', (req, res) => {
   res.render('cadastrar-usuario', {
     erro: null,
     sucesso: req.query.sucesso || null,
-    usuarioLogado: req.session.usuario // ✅ Exatamente o que a tela .ejs pede
+    usuarioLogado: req.session.usuario || null // só mostra se estiver, não exige
   });
 });
 
-app.post('/cadastrar-usuario', soLogado, async (req, res) => {
+// ✅ SALVAR CADASTRO — NÃO PRECISA DE LOGIN
+app.post('/cadastrar-usuario', async (req, res) => {
   try {
     const { login, senha, nome, nivel } = req.body;
 
     let nivelFinal = 'usuario';
+    // Se por acaso estiver logado como admin, permite escolher o nível
     if (req.session.usuario && req.session.usuario.nivel === 'admin') {
       nivelFinal = nivel || 'usuario';
     }
@@ -133,24 +131,21 @@ app.post('/cadastrar-usuario', soLogado, async (req, res) => {
       return res.render('cadastrar-usuario', { 
         erro: 'Esse usuário já existe!', 
         sucesso: null,
-        usuarioLogado: req.session.usuario 
+        usuarioLogado: req.session.usuario || null 
       });
     }
 
-    // ✅ CRIPTOGRAFA A SENHA ANTES DE SALVAR
+    // ✅ CRIPTOGRAFA A SENHA
     const senhaCript = await bcrypt.hash(senha, 10);
-
-    await bd.execute(
-      `INSERT INTO usuarios (login, senha, nome, nivel) VALUES (?, ?, ?, ?)`,
-      [login, senhaCript, nome || login, nivelFinal]
-    );
+    await bd.execute(`INSERT INTO usuarios (login, senha, nome, nivel) VALUES (?, ?, ?, ?)`, 
+      [login, senhaCript, nome || login, nivelFinal]);
 
     res.redirect('/cadastrar-usuario?sucesso=Usuário criado com sucesso!');
   } catch (erro) {
     res.render('cadastrar-usuario', { 
       erro: 'Erro: ' + erro.message, 
       sucesso: null,
-      usuarioLogado: req.session.usuario 
+      usuarioLogado: req.session.usuario || null 
     });
   }
 });
