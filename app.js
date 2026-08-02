@@ -140,7 +140,7 @@ app.post('/cadastrar-usuario', async (req, res) => {
     await bd.execute(`INSERT INTO usuarios (login, senha, nome, nivel) VALUES (?, ?, ?, ?)`, 
       [login, senhaCript, nome || login, nivelFinal]);
 
-    res.redirect('/cadastrar-usuario?sucesso=Usuário criado com sucesso!');
+    res.redirect('/?sucesso=Usuário criado com sucesso! Faça seu login.');
   } catch (erro) {
     res.render('cadastrar-usuario', { 
       erro: 'Erro: ' + erro.message, 
