@@ -69,6 +69,7 @@ iniciarBanco();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static('public'));
+// ✅ ESSA LINHA É OBRIGATÓRIA PARA MOSTRAR AS FOTOS
 app.use('/fotos', express.static(caminhoPasta));
 app.set('view engine', 'ejs');
 app.use(session({
@@ -292,7 +293,10 @@ app.post('/salvar', soLogado, upload.array('fotos', 10), async (req, res) => {
       const novasFotos = req.files.map(f => f.filename).join(', ');
       fotos = novasFotos;
       if (dados.fotos_antigas) {
-        dados.fotos_antigas.split(',').map(f => f.trim()).filter(f => f).forEach(nome => fs.remove(path.join(caminhoPasta, nome)));
+        // Apaga as fotos antigas corretamente
+        dados.fotos_antigas.split(',').map(f => f.trim()).filter(f => f).forEach(nome => {
+          fs.remove(path.join(caminhoPasta, nome));
+        });
       }
     }
 
