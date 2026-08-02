@@ -88,13 +88,14 @@ app.use(express.static('public'));
 app.use('/fotos', express.static(caminhoPasta));
 app.set('view engine', 'ejs');
 app.use(session({
-  secret: process.env.SECRET || 'chave-segura-local-troque-na-nuvem',
+  secret: process.env.SECRET || 'sistema-cadastro-2026-seguro-unico',
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: true,       // ✅ OBRIGATÓRIO no Render (usa HTTPS)
     httpOnly: true,
-    sameSite: 'lax'
+    sameSite: 'lax',
+    maxAge: 24 * 60 * 60 * 1000 // 1 dia de duração da sessão
   }
 }));
 
