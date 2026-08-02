@@ -104,11 +104,14 @@ function soLogado(req, res, next) {
 // ------------------------------
 // ROTAS PÚBLICAS
 // ------------------------------
+// ------------------------------
+// ROTAS PÚBLICAS / CADASTRO DE USUÁRIO
+// ------------------------------
 app.get('/cadastrar-usuario', soLogado, (req, res) => {
   res.render('cadastrar-usuario', {
     erro: null,
     sucesso: req.query.sucesso || null,
-    usuario: req.session.usuario
+    usuarioLogado: req.session.usuario // ✅ ESSA VARIÁVEL QUE FALTAVA NA TELA
   });
 });
 
@@ -123,7 +126,11 @@ app.post('/cadastrar-usuario', soLogado, async (req, res) => {
 
     const [existe] = await bd.execute(`SELECT id FROM usuarios WHERE login = ?`, [login]);
     if (existe.length > 0) {
-      return res.render('cadastrar-usuario', { erro: 'Esse usuário já existe!', sucesso: null, usuario: req.session.usuario });
+      return res.render('cadastrar-usuario', { 
+        erro: 'Esse usuário já existe!', 
+        sucesso: null,
+        usuarioLogado: req.session.usuario 
+      });
     }
 
     // ✅ CRIPTOGRAFA A SENHA ANTES DE SALVAR
@@ -136,10 +143,13 @@ app.post('/cadastrar-usuario', soLogado, async (req, res) => {
 
     res.redirect('/cadastrar-usuario?sucesso=Usuário criado com sucesso!');
   } catch (erro) {
-    res.render('cadastrar-usuario', { erro: 'Erro: ' + erro.message, sucesso: null, usuario: req.session.usuario });
+    res.render('cadastrar-usuario', { 
+      erro: 'Erro: ' + erro.message, 
+      sucesso: null,
+      usuarioLogado: req.session.usuario 
+    });
   }
 });
-
 app.get('/', (req, res) => res.render('login', { erro: undefined, sucesso: req.query.sucesso || null }));
 
 app.post('/logar', async (req, res) => {
