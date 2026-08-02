@@ -157,20 +157,34 @@ app.get('/', (req, res) => res.render('login', { erro: undefined, sucesso: req.q
 app.post('/logar', async (req, res) => {
   try {
     const { login, senha } = req.body;
+    console.log('🔍 TENTANDO LOGAR COM:', login);
+
     const [usuarios] = await bd.execute(`SELECT * FROM usuarios WHERE login = ?`, [login]);
     const usu = usuarios[0];
-    if (!usu) return res.render('login', { erro: 'Usuário não encontrado' });
 
-    const ok = await bcrypt.compare(senha, usu.senha);
-    if (!ok) return res.render('login', { erro: 'Senha incorreta' });
+    if (!usu) {
+      console.log('❌ Usuário NÃO ENCONTRADO no banco!');
+      return res.render('login', { erro: 'Usuário não encontrado' });
+    }
+
+    console.log('✅ Usuário encontrado, comparando senha...');
+    const senhaCorreta = await bcrypt.compare(senha, usu.senha);
+    console.log('🔑 Senha bate?', senhaCorreta);
+
+    if (!senhaCorreta) {
+      console.log('❌ Senha INCORRETA!');
+      return res.render('login', { erro: 'Senha incorreta' });
+    }
 
     req.session.usuario = { id: usu.id, login: usu.login, nivel: usu.nivel };
+    console.log('✅ SESSÃO CRIADA COM SUCESSO:', req.session.usuario);
     res.redirect('/inicial');
+
   } catch(e) {
+    console.error('❌ ERRO NO LOGIN:', e.message);
     res.render('login', { erro: e.message });
   }
 });
-
 app.get('/inicial', soLogado, (req, res) => {
   res.render('inicial', { usuario: req.session.usuario });
 });
