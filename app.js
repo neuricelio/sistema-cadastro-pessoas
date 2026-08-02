@@ -138,18 +138,20 @@ app.post('/cadastrar-usuario', async (req, res) => {
 
     const [existe] = await bd.execute(`SELECT id FROM usuarios WHERE login = ?`, [login]);
     if (existe.length > 0) {
-      return res.render('cadastrar-usuario', { erro: 'Esse usuário já existe!' });
+      return res.render('cadastrar-usuario', { erro: 'Esse usuário já existe!', usuarioLogado: req.session.usuario });
     }
 
+    // ✅ ESSA LINHA É OBRIGATÓRIA: CRIPTOGRAFA A SENHA ANTES DE SALVAR
     const senhaCript = await bcrypt.hash(senha, 10);
+
     await bd.execute(
       `INSERT INTO usuarios (login, senha, nome, nivel) VALUES (?, ?, ?, ?)`,
       [login, senhaCript, nome || login, nivelFinal]
     );
 
-    res.redirect('/?sucesso=Usuário criado com sucesso!');
+    res.redirect('/cadastrar-usuario?sucesso=Usuário criado com sucesso!');
   } catch (erro) {
-    res.render('cadastrar-usuario', { erro: 'Erro: ' + erro.message });
+    res.render('cadastrar-usuario', { erro: 'Erro: ' + erro.message, usuarioLogado: req.session.usuario });
   }
 });
 
