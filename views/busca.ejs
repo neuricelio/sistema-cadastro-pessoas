@@ -14,11 +14,12 @@
       <input type="text" id="campoBusca" placeholder="Ex: Silva" autocomplete="off">
     </div>
 
-    <div id="listaResultados" style="margin-top:10px;">
+    <!-- ✅ LISTA FLUTUANTE — NÃO MEXE NOS BOTÕES -->
+    <div id="listaResultados" style="margin-top:5px; position:absolute; width:calc(100% - 40px); background:#fff; border:1px solid #ccc; border-radius:4px; box-shadow:0 4px 8px rgba(0,0,0,0.15); z-index:999; max-height:250px; overflow-y:auto;">
       <div class="item-busca">Comece a digitar para ver os resultados...</div>
     </div>
 
-    <div class="botoes" style="margin-top:15px;">
+    <div class="botoes" style="margin-top:45px; position:relative;">
       <a href="/inicial" class="btn">Voltar</a>
       <a href="/sair" class="btn btn-sair">Sair</a>
     </div>
