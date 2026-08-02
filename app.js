@@ -91,11 +91,12 @@ app.use(session({
   secret: process.env.SECRET || 'sistema-cadastro-2026-seguro-unico',
   resave: false,
   saveUninitialized: false,
+  proxy: true, // ✅ ESSA LINHA QUE FALTAVA — OBRIGATÓRIA NO RENDER
   cookie: {
-    secure: true,       // ✅ OBRIGATÓRIO no Render (usa HTTPS)
+    secure: true,
     httpOnly: true,
     sameSite: 'lax',
-    maxAge: 24 * 60 * 60 * 1000 // 1 dia de duração da sessão
+    maxAge: 24 * 60 * 60 * 1000
   }
 }));
 
