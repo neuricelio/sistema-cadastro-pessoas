@@ -97,7 +97,10 @@ const upload = multer({ storage: armazenamento, limits: { fileSize: 5 * 1024 * 1
 // MIDDLEWARE DE ACESSO
 // ------------------------------
 function soLogado(req, res, next) {
-  if (!req.session.usuario) return res.redirect('/');
+  if (!req.session.usuario){
+    console.log('🔒 ACESSO NEGADO: usuário não logado em', req.path);
+    return res.redirect('/');
+  }
   next();
 }
 
@@ -108,10 +111,11 @@ function soLogado(req, res, next) {
 // ROTAS PÚBLICAS / CADASTRO DE USUÁRIO
 // ------------------------------
 app.get('/cadastrar-usuario', soLogado, (req, res) => {
+  console.log('✅ ACESSO PERMITIDO a cadastrar-usuario por:', req.session.usuario.login);
   res.render('cadastrar-usuario', {
     erro: null,
     sucesso: req.query.sucesso || null,
-    usuarioLogado: req.session.usuario // ✅ ESSA VARIÁVEL QUE FALTAVA NA TELA
+    usuarioLogado: req.session.usuario // ✅ Exatamente o que a tela .ejs pede
   });
 });
 
