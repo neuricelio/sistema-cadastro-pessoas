@@ -159,10 +159,15 @@
           <div class="preview-fotos" id="preview-fotos"></div>
           <div id="fotos-salvas">
             <% if(pessoa && pessoa.fotos){ 
-              const arrFotos = pessoa.fotos.split(', ');
-              arrFotos.forEach(f => { %>
-                <img src="/fotos/<%= f %>" class="miniatura" alt="Foto salva">
-            <% }); } %>
+              // Separa as fotos, remove espaços vazios e ignora entradas vazias
+              const arrFotos = pessoa.fotos.split(',').map(f => f.trim()).filter(f => f);
+              if(arrFotos.length > 0){
+                arrFotos.forEach(f => { %>
+                  <img src="/fotos/<%= f %>" class="miniatura" alt="Foto salva" onerror="this.style.display='none'">
+              <% }); 
+              } else { %>
+                <div style="color:#888; font-size:13px;">Nenhuma foto válida salva</div>
+            <% } } %>
           </div>
         </div>
       </div>
