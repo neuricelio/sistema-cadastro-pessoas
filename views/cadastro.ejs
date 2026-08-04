@@ -12,22 +12,7 @@
       Usuário: <strong><%= usuario.login %></strong>
     </div>
   </div>
-<!-- 🚨 ÁREA DE MENSAGENS -->
-<% if (erro) { %>
-  <div class="mensagem <%= tipoErro %>">
-    <% if (tipoErro === 'aviso') { %>
-      <strong>⚠️ Atenção!</strong>
-    <% } else { %>
-      <strong>❌ Erro!</strong>
-    <% } %>
-    <%= erro %>
-  </div>
-<% } %>
 
-<!-- SEU FORMULÁRIO CONTINUA AQUI -->
-<form method="POST" enctype="multipart/form-data">
-  <!-- campos, botões, etc... -->
-</form>
   <form method="post" action="/salvar" enctype="multipart/form-data">
     <% if(pessoa) { %>
       <input type="hidden" name="id" value="<%= pessoa.id %>">
