@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Visualização de Cadastro</title>
+  <link rel="stylesheet" href="/estilo.css">
+</head>
+<body>
+  <div class="cabecalho visualizacao-cabecalho">
+    <h2>Visualização de Pessoa</h2>
+    <div class="visualizacao-usuario">
+      Usuário: <strong><%= usuarioLogado.login %></strong>
+    </div>
+  </div>
+
+  <div class="area-principal">
+    <div class="dados-form">
+
+      <div class="visualizacao-dados-fotos">
+        <div class="visualizacao-dados">
+          <h3 class="visualizacao-titulo-secao">Dados Pessoais</h3>
+          <div class="linha">
+            <div class="grupo pequeno">
+              <label>Siapen:</label>
+              <input type="text" value="<%= pessoa?.siapen || '' %>" readonly disabled class="visualizacao-input">
+            </div>
+            <div class="grupo grande">
+              <label>Nome Completo:</label>
+              <input type="text" value="<%= pessoa?.nome || '' %>" readonly disabled class="visualizacao-input">
+            </div>
+          </div>
+
+          <div class="linha">
+            <div class="grupo medio">
+              <label>CPF:</label>
+              <input type="text" value="<%= pessoa?.cpf || '' %>" readonly disabled class="visualizacao-input">
+            </div>
+            <div class="grupo medio">
+              <label>RG:</label>
+              <input type="text" value="<%= pessoa?.rg || '' %>" readonly disabled class="visualizacao-input">
+            </div>
+            <div class="grupo pequeno">
+              <label>Data Nasc.:</label>
+              <% if(pessoa?.nascimento){
+                const d = new Date(pessoa.nascimento);
+                const dia = String(d.getDate()).padStart(2,'0');
+                const mes = String(d.getMonth()+1).padStart(2,'0');
+                const ano = d.getFullYear(); %>
+                <input type="text" value="<%= dia %>/<%= mes %>/<%= ano %>" readonly disabled class="visualizacao-input">
+              <% } else { %>
+                <input type="text" value="" placeholder="Não informada" readonly disabled class="visualizacao-input">
+              <% } %>
+            </div>
+          </div>
+
+          <div class="linha">
+            <div class="grupo largo">
+              <label>Nome da Mãe:</label>
+              <input type="text" value="<%= pessoa?.mae || '' %>" readonly disabled class="visualizacao-input">
+            </div>
+          </div>
+
+          <div class="linha">
+            <div class="grupo largo">
+              <label>Nome do Pai:</label>
+              <input type="text" value="<%= pessoa?.pai || '' %>" readonly disabled class="visualizacao-input">
+            </div>
+          </div>
+        </div>
+
+        <div class="visualizacao-fotos">
+          <h3 class="visualizacao-titulo-secao">Fotos</h3>
+          <div class="visualizacao-fotos-lista">
+            <% if(pessoa && pessoa.fotos){ 
+              const arrFotos = pessoa.fotos.split(',').map(f=>f.trim()).filter(f=>f);
+              if(arrFotos.length){
+                arrFotos.forEach(f => { %>
+                  <img src="/fotos/<%= f %>" class="miniatura" alt="Foto salva">
+                <% }); 
+              } else { %>
+                <div>Nenhuma foto salva</div>
+              <% } } else { %>
+                <div>Nenhuma foto salva</div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <hr class="visualizacao-separador">
+
+      <h3 class="visualizacao-titulo-secao">Endereço</h3>
+      <div class="linha">
+        <div class="grupo pequeno">
+          <label>CEP:</label>
+          <input type="text" value="<%= pessoa?.cep || '' %>" readonly disabled class="visualizacao-input">
+        </div>
+        <div class="grupo grande">
+          <label>Rua:</label>
+          <input type="text" value="<%= pessoa?.rua || '' %>" readonly disabled class="visualizacao-input">
+        </div>
+      </div>
+
+      <div class="linha">
+        <div class="grupo pequeno">
+          <label>Número:</label>
+          <input type="text" value="<%= pessoa?.numero || '' %>" readonly disabled class="visualizacao-input">
+        </div>
+        <div class="grupo medio">
+          <label>Bairro:</label>
+          <input type="text" value="<%= pessoa?.bairro || '' %>" readonly disabled class="visualizacao-input">
+        </div>
+      </div>
+
+      <div class="linha">
+        <div class="grupo medio">
+          <label>Cidade:</label>
+          <input type="text" value="<%= pessoa?.cidade || '' %>" readonly disabled class="visualizacao-input">
+        </div>
+        <div class="grupo pequeno">
+          <label>UF:</label>
+          <input type="text" value="<%= pessoa?.uf || '' %>" maxlength="2" readonly disabled class="visualizacao-input">
+        </div>
+        <div class="grupo medio">
+          <label>Complemento:</label>
+          <input type="text" value="<%= pessoa?.complemento || '' %>" readonly disabled class="visualizacao-input">
+        </div>
+      </div>
+
+      <hr class="visualizacao-separador">
+
+      <h3 class="visualizacao-titulo-secao">Processos</h3>
+      <div class="linha">
+        <div class="grupo medio">
+          <label>Processo Unificado:</label>
+          <input type="text" value="<%= pessoa?.processo_unificado || '' %>" readonly disabled class="visualizacao-input">
+        </div>
+        <div class="grupo pequeno">
+          <label>Pena Total:</label>
+          <input type="text" value="<%= pessoa?.pena_total || '' %>" readonly disabled class="visualizacao-input">
+        </div>
+        <div class="grupo medio">
+          <label>Progressão:</label>
+          <% if(pessoa?.data_progressao){
+            const dp = new Date(pessoa.data_progressao);
+            const dP = String(dp.getDate()).padStart(2,'0');
+            const mP = String(dp.getMonth()+1).padStart(2,'0');
+            const aP = dp.getFullYear(); %>
+            <input type="text" value="<%= dP %>/<%= mP %>/<%= aP %>" readonly disabled class="visualizacao-input">
+          <% } else { %>
+            <input type="text" value="" placeholder="Não informada" readonly disabled class="visualizacao-input">
+          <% } %>
+        </div>
+      </div>
+
+      <h4>Processos Originais</h4>
+      <table class="tabela-processos visualizacao-tabela-processos">
+        <thead>
+          <tr>
+            <th>Nº Processo</th>
+            <th>Data</th>
+            <th>Tipificação</th>
+            <th>Descrição</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if(processos && processos.length > 0){ 
+            processos.forEach(p => { %>
+              <tr>
+                <td><input type="text" value="<%= p.numero || '' %>" readonly disabled class="visualizacao-input"></td>
+                <td>
+                  <% if(p.data){
+                    const dt = new Date(p.data);
+                    const ddt = String(dt.getDate()).padStart(2,'0');
+                    const mdt = String(dt.getMonth()+1).padStart(2,'0');
+                    const adt = dt.getFullYear(); %>
+                    <input type="text" value="<%= ddt %>/<%= mdt %>/<%= adt %>" readonly disabled class="visualizacao-input">
+                  <% } else { %>
+                    <input type="text" value="" readonly disabled class="visualizacao-input">
+                  <% } %>
+                </td>
+                <td><input type="text" value="<%= p.tipificacao || '' %>" readonly disabled class="visualizacao-input"></td>
+                <td><input type="text" value="<%= p.descricao || '' %>" readonly disabled class="visualizacao-input"></td>
+              </tr>
+            <% }); } else { %>
+              <tr>
+                <td colspan="4" style="padding:8px; color:#888; font-size:13px; text-align:center;">Nenhum processo original cadastrado</td>
+              </tr>
+            <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="botoes visualizacao-botoes">
+    <a href="/editar/<%= pessoa.id %>" class="btn">Editar Cadastro</a>
+    <a href="/busca" class="btn btn-sair">Voltar</a>
+  </div>
+
+  <div class="data-hora-fixa" id="data-hora-fixa"></div>
+
+<script src="/script.js"></script>
+<script>
+function atualizarDataHora(){
+  const agora = new Date();
+  const dia = String(agora.getDate()).padStart(2,'0');
+  const mes = String(agora.getMonth()+1).padStart(2,'0');
+  const ano = agora.getFullYear();
+  const hora = String(agora.getHours()).padStart(2,'0');
+  const min = String(agora.getMinutes()).padStart(2,'0');
+  const seg = String(agora.getSeconds()).padStart(2,'0');
+  document.getElementById('data-hora-fixa').innerText = `${dia}/${mes}/${ano} ${hora}:${min}:${seg}`;
+}
+atualizarDataHora();
+setInterval(atualizarDataHora, 1000);
+</script>
+</body>
+</html>

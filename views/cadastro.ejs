@@ -6,209 +6,191 @@
   <link rel="stylesheet" href="/estilo.css">
 </head>
 <body>
-  <div class="cabecalho" style="display: flex; justify-content: space-between; align-items: center;">
+  <div class="cabecalho">
     <h2><%= pessoa ? 'Editar Pessoa' : 'Cadastrar Nova Pessoa' %></h2>
-    <div style="font-size: 14px; color: #444; font-weight: 500;">
+    <div class="usuario-logado">
       Usuário: <strong><%= usuario.login %></strong>
     </div>
   </div>
 
-    <form method="post" action="/salvar" enctype="multipart/form-data">
-      <!-- Campo oculto: ID e foto antiga -->
-      <% if(pessoa) { %>
-        <input type="hidden" name="id" value="<%= pessoa.id %>">
-        <input type="hidden" name="fotos_antigas" value="<%= pessoa.fotos || '' %>">        
-      <% } %>
+  <form method="post" action="/salvar" enctype="multipart/form-data">
+    <% if(pessoa) { %>
+      <input type="hidden" name="id" value="<%= pessoa.id %>">
+      <input type="hidden" name="fotos_antigas" value="<%= pessoa.fotos || '' %>">        
+    <% } %>
 
-      <!-- ABAS -->
-      <div class="menu-abas">
-        <button type="button" class="aba ativa" data-aba="dados">Dados Pessoais</button>
-        <button type="button" class="aba" data-aba="endereco">Endereço</button>
-        <button type="button" class="aba" data-aba="processos">Processos</button>
-      </div>
+    <div class="menu-abas">
+      <button type="button" class="aba ativa" data-aba="dados">Dados Pessoais</button>
+      <button type="button" class="aba" data-aba="endereco">Endereço</button>
+      <button type="button" class="aba" data-aba="processos">Processos</button>
+    </div>
 
-      <div class="area-principal">
-        <div class="dados-form">
-          <!-- ABA 1: DADOS PESSOAIS -->
-          <div class="conteudo-aba ativa" id="aba-dados">
-            <div class="linha">
-              <div class="grupo pequeno">
-                <label>Siapen:</label>
-                <input type="text" name="siapen" value="<%= pessoa?.siapen || '' %>">
-              </div>
-              <div class="grupo grande">
-                <label>Nome Completo:</label>
-                <input type="text" name="nome" value="<%= pessoa?.nome || '' %>" required>
-              </div>
+    <div class="area-principal">
+      <div class="dados-form">
+
+        <div class="conteudo-aba ativa" id="aba-dados">
+          <div class="linha">
+            <div class="grupo pequeno">
+              <label>Siapen:</label>
+              <input type="text" name="siapen" value="<%= pessoa?.siapen || '' %>">
             </div>
-
-            <div class="linha">
-              <div class="grupo medio">
-                <label>CPF:</label>
-                <input type="text" name="cpf" id="cpf" value="<%= pessoa?.cpf || '' %>" required>
-              </div>
-              <div class="grupo medio">
-                <label>RG:</label>
-                <input type="text" name="rg" value="<%= pessoa?.rg || '' %>">
-              </div>
-              <div class="grupo pequeno">
-                <label>Data Nasc.:</label>
-                <input type="date" name="nascimento" value="<%= pessoa?.nascimento || '' %>" required>
-              </div>
-            </div>
-
-            <div class="linha">
-              <div class="grupo largo">
-                <label>Nome da Mãe:</label>
-                <input type="text" name="mae" value="<%= pessoa?.mae || '' %>">
-              </div>
-            </div>
-
-            <div class="linha">
-              <div class="grupo largo">
-                <label>Nome do Pai:</label>
-                <input type="text" name="pai" value="<%= pessoa?.pai || '' %>">
-              </div>
-            </div>
-
-          </div>
-          
-          <!-- ABA 3: ENDEREÇO -->
-          <div class="conteudo-aba" id="aba-endereco">
-            <div class="linha">
-              <div class="grupo pequeno">
-                <label>CEP:</label>
-                <input type="text" name="cep" id="cep" value="<%= pessoa?.cep || '' %>">
-              </div>
-              <div class="grupo grande">
-                <label>Rua:</label>
-                <input type="text" name="rua" id="rua" value="<%= pessoa?.rua || '' %>">
-              </div>
-            </div>
-
-            <div class="linha">
-              <div class="grupo pequeno">
-                <label>Número:</label>
-                <input type="text" name="numero" value="<%= pessoa?.numero || '' %>">
-              </div>
-              <div class="grupo medio">
-                <label>Bairro:</label>
-                <input type="text" name="bairro" id="bairro" value="<%= pessoa?.bairro || '' %>">
-              </div>
-            </div>
-
-            <div class="linha">
-              <div class="grupo medio">
-                <label>Cidade:</label>
-                <input type="text" name="cidade" id="cidade" value="<%= pessoa?.cidade || '' %>">
-              </div>
-              <div class="grupo pequeno">
-                <label>UF:</label>
-                <input type="text" name="uf" id="uf" maxlength="2" value="<%= pessoa?.uf || '' %>">
-              </div>
-              <div class="grupo medio">
-                <label>Complemento:</label>
-                <input type="text" name="complemento" value="<%= pessoa?.complemento || '' %>">
-              </div>
+            <div class="grupo grande">
+              <label>Nome Completo:</label>
+              <input type="text" name="nome" value="<%= pessoa?.nome || '' %>" required>
             </div>
           </div>
 
-
-          <!-- ABA 2: PROCESSOS -->
-          <div class="conteudo-aba" id="aba-processos">
-            <div class="linha">
-              <div class="grupo medio">
-                <label>Processo Unificado:</label>
-                <input type="text" name="processo_unificado" placeholder="#######-##.####.#.##.####" value="<%= pessoa?.processo_unificado || '' %>">
-              </div>
-              <div class="grupo pequeno">
-                <label>Pena Total:</label>
-                <input type="text" name="pena_total" placeholder="##a##m##d" value="<%= pessoa?.pena_total || '' %>">
-              </div>
-              <div class="grupo medio">
-                <label>Progressão:</label>
-                <input type="date" name="data_progressao" value="<%= pessoa?.data_progressao || '' %>">
-              </div>
+          <div class="linha">
+            <div class="grupo medio">
+              <label>CPF:</label>
+              <input type="text" name="cpf" id="cpf" value="<%= pessoa?.cpf || '' %>" required>
             </div>
+            <div class="grupo medio">
+              <label>RG:</label>
+              <input type="text" name="rg" value="<%= pessoa?.rg || '' %>">
+            </div>
+            <div class="grupo pequeno">
+              <label>Data Nasc.:</label>
+              <input type="date" name="nascimento" value="<%= pessoa?.nascimento ? (typeof pessoa.nascimento === 'object' ? pessoa.nascimento.toISOString().split('T')[0] : pessoa.nascimento.split('T')[0]) : '' %>" required>
+            </div>
+          </div>
 
-            <h4>Processos Originais</h4>
-            <div id="lista-processos">
+          <div class="linha">
+            <div class="grupo largo">
+              <label>Nome da Mãe:</label>
+              <input type="text" name="mae" value="<%= pessoa?.mae || '' %>">
+            </div>
+          </div>
+
+          <div class="linha">
+            <div class="grupo largo">
+              <label>Nome do Pai:</label>
+              <input type="text" name="pai" value="<%= pessoa?.pai || '' %>">
+            </div>
+          </div>
+        </div>
+
+        <div class="conteudo-aba" id="aba-endereco">
+          <div class="linha">
+            <div class="grupo pequeno">
+              <label>CEP:</label>
+              <input type="text" name="cep" id="cep" value="<%= pessoa?.cep || '' %>">
+            </div>
+            <div class="grupo grande">
+              <label>Rua:</label>
+              <input type="text" name="rua" id="rua" value="<%= pessoa?.rua || '' %>">
+            </div>
+          </div>
+
+          <div class="linha">
+            <div class="grupo pequeno">
+              <label>Número:</label>
+              <input type="text" name="numero" value="<%= pessoa?.numero || '' %>">
+            </div>
+            <div class="grupo medio">
+              <label>Bairro:</label>
+              <input type="text" name="bairro" id="bairro" value="<%= pessoa?.bairro || '' %>">
+            </div>
+          </div>
+
+          <div class="linha">
+            <div class="grupo medio">
+              <label>Cidade:</label>
+              <input type="text" name="cidade" id="cidade" value="<%= pessoa?.cidade || '' %>">
+            </div>
+            <div class="grupo pequeno">
+              <label>UF:</label>
+              <input type="text" name="uf" id="uf" maxlength="2" value="<%= pessoa?.uf || '' %>">
+            </div>
+            <div class="grupo medio">
+              <label>Complemento:</label>
+              <input type="text" name="complemento" value="<%= pessoa?.complemento || '' %>">
+            </div>
+          </div>
+        </div>
+
+        <div class="conteudo-aba" id="aba-processos">
+          <div class="linha">
+            <div class="grupo medio">
+              <label>Processo Unificado:</label>
+              <input type="text" name="processo_unificado" placeholder="#######-##.####.#.##.####" value="<%= pessoa?.processo_unificado || '' %>">
+            </div>
+            <div class="grupo pequeno">
+              <label>Pena Total:</label>
+              <input type="text" name="pena_total" placeholder="##a##m##d" value="<%= pessoa?.pena_total || '' %>">
+            </div>
+            <div class="grupo medio">
+              <label>Progressão:</label>
+              <input type="date" name="data_progressao" value="<%= pessoa?.data_progressao ? (typeof pessoa.data_progressao === 'object' ? pessoa.data_progressao.toISOString().split('T')[0] : pessoa.data_progressao.split('T')[0]) : '' %>">
+            </div>
+          </div>
+
+          <h4>Processos Originais</h4>
+          <table class="tabela-processos">
+            <thead>
+              <tr>
+                <th>Nº Processo</th>
+                <th>Data</th>
+                <th>Tipificação</th>
+                <th>Descrição</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="lista-processos">
               <% if(processos && processos.length > 0){ 
                 processos.forEach(p => { %>
-                  <div class="linha-processo">
-                    <input type="text" name="proc_numero" placeholder="Nº Processo" value="<%= p.numero || '' %>">
-                    <input type="date" name="proc_data" value="<%= p.data || '' %>">
-                    <input type="text" name="proc_tipificacao" placeholder="Tipificação" value="<%= p.tipificacao || '' %>">
-                    <input type="text" name="proc_descricao" placeholder="Descrição" value="<%= p.descricao || '' %>">
-                    <button type="button" class="btn btn-remover" onclick="this.parentElement.remove()">×</button>
-                  </div>
-              <% }); } else { %>
-                  <div style="padding:8px; color:#888; font-size:13px;">Nenhum processo original cadastrado</div>
-              <% } %>
-            </div>
-            <button type="button" class="btn" id="addProcesso" style="margin-top:5px;">+ Adicionar Processo Original</button>
-          </div>
+                  <tr>
+                    <td><input type="text" name="proc_numero" value="<%= p.numero || '' %>"></td>
+                    <td><input type="date" name="proc_data" value="<%= p.data ? (typeof p.data === 'object' ? p.data.toISOString().split('T')[0] : p.data.split('T')[0]) : '' %>"></td>
+                    <td><input type="text" name="proc_tipificacao" value="<%= p.tipificacao || '' %>"></td>
+                    <td><input type="text" name="proc_descricao" value="<%= p.descricao || '' %>"></td>
+                    <td><button type="button" class="btn btn-remover" onclick="this.closest('tr').remove()">×</button></td>
+                  </tr>
+                <% }); } else { %>
+                  <tr class="linha-vazia">
+                    <td colspan="5">Nenhum processo original cadastrado</td>
+                  </tr>
+                <% } %>
+            </tbody>
+          </table>
 
-        </div>
-
-        <div class="caixa-fotos">
-          <h4>Fotos</h4>
-          <input type="file" name="fotos" multiple accept="image/*" id="campo-fotos" style="display:none;">
-          <button type="button" class="btn btn-foto" onclick="document.getElementById('campo-fotos').click()">Selecionar Fotos</button>
-          
-          <div class="preview-fotos" id="preview-fotos"></div>
-          <div id="fotos-salvas">
-            <% if(pessoa && pessoa.fotos){ 
-              // Separa as fotos, remove espaços vazios e ignora entradas vazias
-              const arrFotos = pessoa.fotos.split(',').map(f => f.trim()).filter(f => f);
-              if(arrFotos.length > 0){
-                arrFotos.forEach(f => { %>
-                  <img src="/fotos/<%= f %>" class="miniatura" alt="Foto salva" onerror="this.style.display='none'">
-              <% }); 
-              } else { %>
-                <div style="color:#888; font-size:13px;">Nenhuma foto válida salva</div>
-            <% } } %>
-          </div>
+          <button type="button" class="btn btn-adicionar-processo" id="addProcesso">+ Adicionar Processo Original</button>
         </div>
       </div>
 
-      <div class="botoes">
-        <button type="submit" class="btn"><%= pessoa ? 'Salvar Alterações' : 'Cadastrar' %></button>
-        <a href="/inicial" class="btn btn-sair">Voltar</a>
-        <% if(pessoa && pessoa.ativo === 1 && usuario?.nivel === 'admin'){ %>
-          <button type="submit" formaction="/desativar/<%= pessoa.id %>" class="btn btn-amarelo">Desativar</button>
-        <% } %>
-        <% if(pessoa && usuario?.nivel === 'admin'){ %>
-          <button type="submit" formaction="/excluir/<%= pessoa.id %>" class="btn btn-vermelho" onclick="return confirm('Tem certeza que deseja EXCLUIR permanentemente?')">Excluir</button>
-        <% } %>
+      <div class="caixa-fotos">
+        <h4>Fotos</h4>
+        <input type="file" name="fotos" multiple accept="image/*" id="campo-fotos" style="display:none;">
+        <button type="button" class="btn btn-foto" onclick="document.getElementById('campo-fotos').click()">Selecionar Fotos</button>
+        
+        <div class="preview-fotos" id="preview-fotos"></div>
+        <div id="fotos-salvas">
+          <% if(pessoa && pessoa.fotos){ 
+            const arrFotos = pessoa.fotos.split(',').map(f => f.trim()).filter(f => f);
+            if(arrFotos.length > 0){
+              arrFotos.forEach(f => { %>
+                <img src="/fotos/<%= f %>" class="miniatura" alt="Foto salva" onerror="this.style.display='none'">
+            <% }); 
+            } else { %>
+              <div style="color:#888; font-size:13px;">Nenhuma foto válida salva</div>
+          <% } } %>
+        </div>
       </div>
-    </form>
-  </div>
+    </div>
+
+    <div class="botoes">
+      <button type="submit" class="btn"><%= pessoa ? 'Salvar Alterações' : 'Cadastrar' %></button>
+      <a href="/inicial" class="btn btn-sair">Voltar</a>
+      <% if(pessoa && pessoa.ativo === 1 && usuario?.nivel === 'admin'){ %>
+        <button type="submit" formaction="/desativar/<%= pessoa.id %>" class="btn btn-amarelo">Desativar</button>
+      <% } %>
+      <% if(pessoa && usuario?.nivel === 'admin'){ %>
+        <button type="submit" formaction="/excluir/<%= pessoa.id %>" class="btn btn-vermelho" onclick="return confirm('Tem certeza que deseja EXCLUIR permanentemente?')">Excluir</button>
+      <% } %>
+    </div>
+  </form>
 
 <script src="/script.js"></script>
 <div class="data-hora-rodape" id="data-hora"></div>
-<script>
-document.querySelectorAll('.aba').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa'));
-    document.querySelectorAll('.conteudo-aba').forEach(c => c.classList.remove('ativa'));
-    btn.classList.add('ativa');
-    document.getElementById('aba-' + btn.dataset.aba).classList.add('ativa');
-  });
-});
-
-function adicionarLinhaProcesso(dados = []){
-  const div = document.createElement('div');
-  div.className = 'linha-processo';
-  div.innerHTML = `
-    <input type="text" name="proc_numero" placeholder="Nº Processo" value="${dados[0]||''}">
-    <input type="date" name="proc_data" value="${dados[1]||''}">
-    <input type="text" name="proc_tipificacao" placeholder="Tipificação" value="${dados[2]||''}">
-    <input type="text" name="proc_descricao" placeholder="Descrição" value="${dados[3]||''}">
-    <button type="button" class="btn btn-remover" onclick="this.parentElement.remove()">×</button>
-  `;
-  document.getElementById('lista-processos').appendChild(div);
-}
-</script>
 </body>
 </html>
