@@ -226,7 +226,9 @@ app.get('/buscar-nomes', soLogado, async (req, res) => {
 // SALVAR CADASTRO / EDIÇÃO
 // ------------------------------
 app.post('/salvar', soLogado, upload.array('fotos', 10), async (req, res) => {
+  const conn = await bd.getConnection();
   try {
+    await conn.beginTransaction(); // Transação: salva tudo ou nada
     const dados = req.body;
     let fotos = dados.fotos_antigas || '';
 
@@ -235,25 +237,26 @@ app.post('/salvar', soLogado, upload.array('fotos', 10), async (req, res) => {
       fotos = novasFotos;
       if (dados.fotos_antigas) {
         dados.fotos_antigas.split(',').map(f => f.trim()).filter(f => f).forEach(nome => {
-          fs.remove(path.join(caminhoPasta, nome));
+          fs.remove(path.join(caminhoPasta, nome)).catch(err => console.warn('Arquivo não encontrado:', nome));
         });
       }
     }
 
+    // Trata arrays de processos
     const numsProc = Array.isArray(req.body.proc_numero) ? req.body.proc_numero : (req.body.proc_numero ? [req.body.proc_numero] : []);
     const datasProc = Array.isArray(req.body.proc_data) ? req.body.proc_data : (req.body.proc_data ? [req.body.proc_data] : []);
     const tipsProc = Array.isArray(req.body.proc_tipificacao) ? req.body.proc_tipificacao : (req.body.proc_tipificacao ? [req.body.proc_tipificacao] : []);
     const descsProc = Array.isArray(req.body.proc_descricao) ? req.body.proc_descricao : (req.body.proc_descricao ? [req.body.proc_descricao] : []);
 
     async function salvarProcessosOriginais(idPessoa) {
-      await bd.execute(`DELETE FROM processos_originais WHERE id_processo_unificado = ?`, [idPessoa]);
+      await conn.execute(`DELETE FROM processos_originais WHERE id_processo_unificado = ?`, [idPessoa]);
       for(let i=0; i < numsProc.length; i++){
         const num = (numsProc[i]||'').trim();
         const dt = (datasProc[i]||'').trim();
         const tip = (tipsProc[i]||'').trim();
         const desc = (descsProc[i]||'').trim();
         if(!num && !dt && !tip && !desc) continue;
-        await bd.execute(
+        await conn.execute(
           `INSERT INTO processos_originais (id_processo_unificado,numero,data,tipificacao,descricao) 
           VALUES (?,?,?,?,?)`,[idPessoa, num, dt || null, tip, desc]
         );
@@ -261,30 +264,75 @@ app.post('/salvar', soLogado, upload.array('fotos', 10), async (req, res) => {
     }
 
     if (dados.id) {
-      const [antigos] = await bd.execute(`SELECT * FROM pessoas WHERE id = ?`, [dados.id]);
-      const antigo = antigos[0];
+      // 📝 EDIÇÃO
+      const [antigos] = await conn.execute(`SELECT * FROM pessoas WHERE id = ?`, [dados.id]);
+      if (!antigos[0]) throw new Error('Registro não encontrado!');
 
-      await bd.execute(`UPDATE pessoas SET siapen=?,nome=?,cpf=?,rg=?,nascimento=?,mae=?,pai=?,cep=?,rua=?,numero=?,bairro=?,cidade=?,uf=?,complemento=?,processo_unificado=?,pena_total=?,data_progressao=?,fotos=? WHERE id=?`,
+      await conn.execute(`UPDATE pessoas SET siapen=?,nome=?,cpf=?,rg=?,nascimento=?,mae=?,pai=?,cep=?,rua=?,numero=?,bairro=?,cidade=?,uf=?,complemento=?,processo_unificado=?,pena_total=?,data_progressao=?,fotos=? WHERE id=?`,
         [dados.siapen,dados.nome,dados.cpf,dados.rg,dados.nascimento||null,dados.mae,dados.pai,dados.cep,dados.rua,dados.numero,dados.bairro,dados.cidade,dados.uf,dados.complemento,dados.processo_unificado,dados.pena_total,dados.data_progressao||null,fotos,dados.id]);
 
-      await bd.execute(`INSERT INTO auditoria (usuario,acao,id_pessoa,dados_anteriores,dados_novos) VALUES (?,?,?,?,?)`,
-        [req.session.usuario.login,'ALTERAÇÃO',dados.id,JSON.stringify(antigo),JSON.stringify({...dados,fotos})]);
+      await conn.execute(`INSERT INTO auditoria (usuario,acao,id_pessoa,dados_anteriores,dados_novos) VALUES (?,?,?,?,?)`,
+        [req.session.usuario.login,'ALTERAÇÃO',dados.id,JSON.stringify(antigos[0]),JSON.stringify({...dados,fotos})]);
 
       await salvarProcessosOriginais(dados.id);
-      res.redirect('/busca');
     } else {
-      const [result] = await bd.execute(`INSERT INTO pessoas (siapen,nome,cpf,rg,nascimento,mae,pai,cep,rua,numero,bairro,cidade,uf,complemento,processo_unificado,pena_total,data_progressao,fotos) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      // 🆕 NOVO CADASTRO
+      await conn.execute(`INSERT INTO pessoas (siapen,nome,cpf,rg,nascimento,mae,pai,cep,rua,numero,bairro,cidade,uf,complemento,processo_unificado,pena_total,data_progressao,fotos) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
         [dados.siapen,dados.nome,dados.cpf,dados.rg,dados.nascimento||null,dados.mae,dados.pai,dados.cep,dados.rua,dados.numero,dados.bairro,dados.cidade,dados.uf,dados.complemento,dados.processo_unificado,dados.pena_total,dados.data_progressao||null,fotos]);
 
-      await bd.execute(`INSERT INTO auditoria (usuario,acao,id_pessoa,dados_novos) VALUES (?,?,?,?)`,
-        [req.session.usuario.login,'CADASTRO NOVO',result.insertId,JSON.stringify({...dados,fotos})]);
+      const [result] = await conn.execute(`SELECT LAST_INSERT_ID() as id`);
+      const novoId = result[0].id;
 
-      await salvarProcessosOriginais(result.insertId);
-      res.redirect('/busca');
+      await conn.execute(`INSERT INTO auditoria (usuario,acao,id_pessoa,dados_novos) VALUES (?,?,?,?)`,
+        [req.session.usuario.login,'CADASTRO NOVO',novoId,JSON.stringify({...dados,fotos})]);
+
+      await salvarProcessosOriginais(novoId);
     }
+
+    await conn.commit();
+    res.redirect('/busca');
+
   } catch(erro) {
-    console.error('ERRO SALVAR:', erro);
-    res.send(`<h3>Erro: ${erro.message}</h3><a href="/cadastro">Voltar</a>`);
+    await conn.rollback();
+    console.error('❌ ERRO AO SALVAR:', erro);
+
+    // 🎯 TRATAMENTO INTELIGENTE DOS ERROS
+    let mensagemErro = 'Ocorreu um erro ao salvar, verifique os dados!';
+    let tipoErro = 'erro'; // erro / aviso / sucesso
+
+    if (erro.code === 'ER_DUP_ENTRY') {
+      if (erro.message.includes('pessoas.cpf')) {
+        mensagemErro = `⚠️ O CPF ${dados.cpf} já está cadastrado no sistema!`;
+        tipoErro = 'aviso';
+      } else if (erro.message.includes('pessoas.processo_unificado')) {
+        mensagemErro = `⚠️ O número de processo ${dados.processo_unificado} já está cadastrado!`;
+        tipoErro = 'aviso';
+      } else {
+        mensagemErro = `⚠️ Registro duplicado: algum dado único já existe no sistema!`;
+        tipoErro = 'aviso';
+      }
+    } else if (erro.message.includes('não encontrado')) {
+      mensagemErro = `❌ ${erro.message}`;
+    } else {
+      mensagemErro = `❌ Erro: ${erro.message}`;
+    }
+
+    // 🚫 VOLTA PARA A TELA COM DADOS PREENCHIDOS E MENSAGEM
+    return res.render('cadastro', {
+      pessoa: { ...dados, fotos },
+      processos: numsProc.map((num, i) => ({
+        numero: num,
+        data: datasProc[i],
+        tipificacao: tipsProc[i],
+        descricao: descsProc[i]
+      })),
+      usuario: req.session.usuario,
+      erro: mensagemErro,
+      tipoErro: tipoErro
+    });
+
+  } finally {
+    conn.release();
   }
 });
 
