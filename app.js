@@ -14,14 +14,14 @@ const caminhoPasta = path.join(__dirname, 'pasta-fotos');
 fs.ensureDirSync(caminhoPasta);
 
 // ------------------------------
-// CONEXÃO BANCO — LOCAL
+// CONEXÃO BANCO — LOCAL E ONLINE
 // ------------------------------
 const bd = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'sistema_cadastro',
-  port: 3306,
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASS || '',
+  database: process.env.DB_NAME || 'sistema_cadastro',
+  port: process.env.DB_PORT || 3306,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
@@ -57,18 +57,18 @@ async function iniciarBanco(){
 iniciarBanco();
 
 // ------------------------------
-// SESSÃO — FUNCIONA LOCAL
+// 🛑 SESSÃO — CORRIGIDA PARA FUNCIONAR LOCAL E ONLINE
 // ------------------------------
 app.use(session({
-  secret: 'teste-local-seguro-2026',
+  secret: process.env.SESSION_SECRET || 'sistema-cadastro-seguro-2026-alterar-em-producao',
   resave: false,
   saveUninitialized: false,
-  proxy: false,
+  proxy: true, // ✅ Habilita para servidores online
   cookie: {
-    secure: false,
+    secure: process.env.NODE_ENV === 'production', // ✅ Automático: true se HTTPS, false se local
     httpOnly: true,
     sameSite: 'lax',
-    maxAge: 86400000
+    maxAge: 1000 * 60 * 60 * 24 // 1 dia
   }
 }));
 
@@ -91,7 +91,7 @@ const armazenamento = multer.diskStorage({
 const upload = multer({ storage: armazenamento, limits: { fileSize: 5 * 1024 * 1024 } });
 
 // ------------------------------
-// MIDDLEWARE
+// MIDDLEWARE DE PROTEÇÃO
 // ------------------------------
 function soLogado(req, res, next) {
   if (!req.session.usuario){
@@ -116,9 +116,25 @@ app.post('/logar', async (req, res) => {
     const senhaCorreta = await bcrypt.compare(senha, usu.senha);
     if (!senhaCorreta) return res.render('login', { erro: 'Senha incorreta' });
 
-    req.session.usuario = { id: usu.id, login: usu.login, nivel: usu.nivel };
-    res.redirect('/inicial');
+    // ✅ Salva os dados corretamente na sessão
+    req.session.usuario = { 
+      id: usu.id, 
+      login: usu.login, 
+      nome: usu.nome || usu.login,
+      nivel: usu.nivel 
+    };
+
+    // ✅ Garante que a sessão está salva antes de redirecionar
+    req.session.save((erroSalva) => {
+      if (erroSalva) {
+        console.error('❌ ERRO AO SALVAR SESSÃO:', erroSalva);
+        return res.render('login', { erro: 'Erro ao autenticar, tente novamente' });
+      }
+      res.redirect('/inicial');
+    });
+
   } catch(e) {
+    console.error('❌ ERRO NO LOGIN:', e);
     res.render('login', { erro: e.message });
   }
 });
