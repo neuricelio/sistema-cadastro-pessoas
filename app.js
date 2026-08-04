@@ -183,7 +183,16 @@ app.post('/cadastrar-usuario', async (req, res) => {
 // ------------------------------
 app.get('/inicial', soLogado, (req, res) => res.render('inicial', { usuario: req.session.usuario }));
 app.get('/sair', (req, res) => { req.session.destroy(); res.redirect('/'); });
-app.get('/cadastro', soLogado, (req, res) => res.render('cadastro', { pessoa: null, processos: [], usuario: req.session.usuario }));
+app.get('/cadastro', soLogado, async (req, res) => {
+  // ... seu código existente para buscar dados de edição ...
+  res.render('cadastro', {
+    pessoa: req.query.id ? dadosPessoa : {},
+    processos: req.query.id ? listaProcessos : [],
+    usuario: req.session.usuario,
+    erro: null,      // ✅ Obrigatório
+    tipoErro: null  // ✅ Obrigatório
+  });
+});
 app.get('/busca', soLogado, (req, res) => res.render('busca', { usuario: req.session.usuario }));
 
 app.get('/editar/:id', soLogado, async (req, res) => {
