@@ -198,9 +198,20 @@ app.get('/ver/:id', soLogado, async (req, res) => {
     const pessoa = pessoas[0];
     if (!pessoa) return res.redirect('/busca');
     
-    const [processos] = await bd.execute(`SELECT * FROM processos_originais WHERE id_processo_unificado = ? ORDER BY id`, [req.params.id]);
-    res.render('ver', { pessoa, processos, usuarioLogado: req.session.usuario });
-  } catch {
+    // ✅ Consulta correta para pegar os processos
+    const [processos] = await bd.execute(
+      `SELECT * FROM processos_originais WHERE id_processo_unificado = ? ORDER BY id`, 
+      [req.params.id]
+    );
+
+    // ✅ Envia os nomes CORRETOS para a tela
+    res.render('ver', { 
+      pessoa, 
+      processos, 
+      usuarioLogado: req.session.usuario 
+    });
+  } catch (erro) {
+    console.error('ERRO NA TELA VER:', erro);
     res.redirect('/busca');
   }
 });
