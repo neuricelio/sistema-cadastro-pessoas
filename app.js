@@ -228,21 +228,21 @@ app.get('/buscar-nomes', soLogado, async (req, res) => {
 app.post('/salvar', soLogado, upload.array('fotos', 10), async (req, res) => {
   const conn = await bd.getConnection();
   try {
-    await conn.beginTransaction(); // Transação: salva tudo ou nada
+    await conn.beginTransaction();
     const dados = req.body;
     let fotos = dados.fotos_antigas || '';
 
+    // 📂 Caminho das fotos (funciona em qualquer hospedagem)
+    const caminhoPasta = path.join(process.cwd(), 'public', 'uploads');
+
+    // Salva novas fotos, MAS NÃO TENTA APAGAR ANTIGAS (na nuvem a pasta é temporária)
+    // Se quiser manter exclusão, só funciona se usar armazenamento externo (S3, etc)
     if (req.files && req.files.length > 0) {
       const novasFotos = req.files.map(f => f.filename).join(', ');
       fotos = novasFotos;
-      if (dados.fotos_antigas) {
-        dados.fotos_antigas.split(',').map(f => f.trim()).filter(f => f).forEach(nome => {
-          fs.remove(path.join(caminhoPasta, nome)).catch(err => console.warn('Arquivo não encontrado:', nome));
-        });
-      }
     }
 
-    // Trata arrays de processos
+    // Trata processos
     const numsProc = Array.isArray(req.body.proc_numero) ? req.body.proc_numero : (req.body.proc_numero ? [req.body.proc_numero] : []);
     const datasProc = Array.isArray(req.body.proc_data) ? req.body.proc_data : (req.body.proc_data ? [req.body.proc_data] : []);
     const tipsProc = Array.isArray(req.body.proc_tipificacao) ? req.body.proc_tipificacao : (req.body.proc_tipificacao ? [req.body.proc_tipificacao] : []);
@@ -256,15 +256,12 @@ app.post('/salvar', soLogado, upload.array('fotos', 10), async (req, res) => {
         const tip = (tipsProc[i]||'').trim();
         const desc = (descsProc[i]||'').trim();
         if(!num && !dt && !tip && !desc) continue;
-        await conn.execute(
-          `INSERT INTO processos_originais (id_processo_unificado,numero,data,tipificacao,descricao) 
-          VALUES (?,?,?,?,?)`,[idPessoa, num, dt || null, tip, desc]
-        );
+        await conn.execute(`INSERT INTO processos_originais (id_processo_unificado,numero,data,tipificacao,descricao) VALUES (?,?,?,?,?)`,[idPessoa, num, dt || null, tip, desc]);
       }
     }
 
     if (dados.id) {
-      // 📝 EDIÇÃO
+      // EDIÇÃO
       const [antigos] = await conn.execute(`SELECT * FROM pessoas WHERE id = ?`, [dados.id]);
       if (!antigos[0]) throw new Error('Registro não encontrado!');
 
@@ -276,7 +273,7 @@ app.post('/salvar', soLogado, upload.array('fotos', 10), async (req, res) => {
 
       await salvarProcessosOriginais(dados.id);
     } else {
-      // 🆕 NOVO CADASTRO
+      // NOVO CADASTRO
       await conn.execute(`INSERT INTO pessoas (siapen,nome,cpf,rg,nascimento,mae,pai,cep,rua,numero,bairro,cidade,uf,complemento,processo_unificado,pena_total,data_progressao,fotos) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
         [dados.siapen,dados.nome,dados.cpf,dados.rg,dados.nascimento||null,dados.mae,dados.pai,dados.cep,dados.rua,dados.numero,dados.bairro,dados.cidade,dados.uf,dados.complemento,dados.processo_unificado,dados.pena_total,dados.data_progressao||null,fotos]);
 
@@ -294,12 +291,12 @@ app.post('/salvar', soLogado, upload.array('fotos', 10), async (req, res) => {
 
   } catch(erro) {
     await conn.rollback();
-    console.error('❌ ERRO AO SALVAR:', erro);
+    console.error('❌ ERRO NO SALVAR:', erro.code, erro.message); // Veja o erro real nos LOGS do Render/Railway
 
-    // 🎯 TRATAMENTO INTELIGENTE DOS ERROS
     let mensagemErro = 'Ocorreu um erro ao salvar, verifique os dados!';
-    let tipoErro = 'erro'; // erro / aviso / sucesso
+    let tipoErro = 'erro';
 
+    // 🎯 Detecta duplicatas sem quebrar
     if (erro.code === 'ER_DUP_ENTRY') {
       if (erro.message.includes('pessoas.cpf')) {
         mensagemErro = `⚠️ O CPF ${dados.cpf} já está cadastrado no sistema!`;
@@ -308,23 +305,18 @@ app.post('/salvar', soLogado, upload.array('fotos', 10), async (req, res) => {
         mensagemErro = `⚠️ O número de processo ${dados.processo_unificado} já está cadastrado!`;
         tipoErro = 'aviso';
       } else {
-        mensagemErro = `⚠️ Registro duplicado: algum dado único já existe no sistema!`;
+        mensagemErro = `⚠️ Algum dado único já está cadastrado no sistema!`;
         tipoErro = 'aviso';
       }
-    } else if (erro.message.includes('não encontrado')) {
-      mensagemErro = `❌ ${erro.message}`;
     } else {
-      mensagemErro = `❌ Erro: ${erro.message}`;
+      mensagemErro = `❌ ${erro.message}`;
     }
 
-    // 🚫 VOLTA PARA A TELA COM DADOS PREENCHIDOS E MENSAGEM
+    // Volta para cadastro COM DADOS PREENCHIDOS e mensagem
     return res.render('cadastro', {
       pessoa: { ...dados, fotos },
       processos: numsProc.map((num, i) => ({
-        numero: num,
-        data: datasProc[i],
-        tipificacao: tipsProc[i],
-        descricao: descsProc[i]
+        numero: num, data: datasProc[i], tipificacao: tipsProc[i], descricao: descsProc[i]
       })),
       usuario: req.session.usuario,
       erro: mensagemErro,
