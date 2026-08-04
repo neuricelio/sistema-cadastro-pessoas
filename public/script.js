@@ -168,6 +168,37 @@ function atualizarDataHora() {
   el.textContent = `${data} ${hora}`;
 }
 
+// --- CONTROLE DAS ABAS ---
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.aba').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa'));
+      document.querySelectorAll('.conteudo-aba').forEach(c => c.classList.remove('ativa'));
+      btn.classList.add('ativa');
+      document.getElementById('aba-' + btn.dataset.aba).classList.add('ativa');
+    });
+  });
+});
+
+function adicionarLinhaProcesso() {
+  const tbody = document.getElementById('lista-processos');
+  if(!tbody) return;
+
+  // Remove aviso de vazio
+  const linhaVazia = tbody.querySelector('.linha-vazia');
+  if(linhaVazia) linhaVazia.remove();
+
+  const novaLinha = document.createElement('tr');
+  novaLinha.innerHTML = `
+    <td><input type="text" name="proc_numero" placeholder="Nº Processo"></td>
+    <td><input type="date" name="proc_data"></td>
+    <td><input type="text" name="proc_tipificacao" placeholder="Tipificação"></td>
+    <td><input type="text" name="proc_descricao" placeholder="Descrição"></td>
+    <td><button type="button" class="btn btn-remover" onclick="this.closest('tr').remove()">×</button></td>
+  `;
+  tbody.appendChild(novaLinha);
+}
+
 // Inicia a função quando a página carregar
 document.addEventListener('DOMContentLoaded', () => {
   atualizarDataHora();
