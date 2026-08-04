@@ -69,18 +69,15 @@
         </div>
 
         <div class="visualizacao-fotos">
-          <h3 class="visualizacao-titulo-secao">Fotos</h3>
+          <h4>Fotos</h4>
           <div class="visualizacao-fotos-lista">
-            <% if(pessoa && pessoa.fotos){ 
-              const arrFotos = pessoa.fotos.split(',').map(f=>f.trim()).filter(f=>f);
-              if(arrFotos.length){
-                arrFotos.forEach(f => { %>
-                  <img src="/fotos/<%= f %>" class="miniatura" alt="Foto salva">
-                <% }); 
-              } else { %>
-                <div>Nenhuma foto salva</div>
-              <% } } else { %>
-                <div>Nenhuma foto salva</div>
+            <% if (pessoa.fotos) { 
+              const listaFotos = pessoa.fotos.split(',').map(f => f.trim()).filter(f => f);
+              listaFotos.forEach(foto => { %>
+                <img src="/fotos/<%= foto %>" class="miniatura" alt="Foto">
+              <% }); 
+            } else { %>
+              <p>Nenhuma foto cadastrada</p>
             <% } %>
           </div>
         </div>
