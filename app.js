@@ -14,14 +14,14 @@ const caminhoPasta = path.join(__dirname, 'pasta-fotos');
 fs.ensureDirSync(caminhoPasta);
 
 // ------------------------------
-// CONEXÃO COM MYSQL
+// CONEXÃO BANCO — LOCAL
 // ------------------------------
 const bd = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT || 3306,
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'sistema_cadastro',
+  port: 3306,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
@@ -31,14 +31,7 @@ const bd = mysql.createPool({
 async function iniciarBanco(){
   try {
     console.log('========================================');
-    console.log('🔍 TENTANDO CONECTAR NO BANCO DE DADOS:');
-    console.log('   DB_HOST    =', process.env.DB_HOST || '❌ NÃO DEFINIDO!');
-    console.log('   DB_PORT    =', process.env.DB_PORT || '❌ NÃO DEFINIDO!');
-    console.log('   DB_USER    =', process.env.DB_USER || '❌ NÃO DEFINIDO!');
-    console.log('   DB_NAME    =', process.env.DB_NAME || '❌ NÃO DEFINIDO!');
-    console.log('   DB_PASS    =', process.env.DB_PASS ? '✅ DEFINIDA (' + process.env.DB_PASS.length + ' caracteres)' : '❌ NÃO DEFINIDA!');
-    console.log('========================================');
-
+    console.log('🔍 CONECTANDO AO BANCO DE DADOS...');
     const conn = await bd.getConnection();
     console.log('✅ CONECTADO AO MYSQL COM SUCESSO!');
     console.log('   Thread ID:', conn.threadId);
@@ -52,7 +45,7 @@ async function iniciarBanco(){
         ['admin', hash, 'admin']);
       console.log('✅ Usuário admin criado: admin / admin123');
     } else {
-      console.log('ℹ️ Usuário admin já existe, pulando criação.');
+      console.log('ℹ️ Usuário admin já existe.');
     }
 
   } catch(e) {
@@ -64,21 +57,15 @@ async function iniciarBanco(){
 iniciarBanco();
 
 // ------------------------------
-// CONFIGURAÇÕES GERAIS
+// SESSÃO — FUNCIONA LOCAL
 // ------------------------------
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(express.static('public'));
-// ✅ ESSA LINHA É OBRIGATÓRIA PARA MOSTRAR AS FOTOS
-app.use('/fotos', express.static(caminhoPasta));
-app.set('view engine', 'ejs');
 app.use(session({
-  secret: process.env.SECRET || 'sistema-cadastro-2026-seguro-unico',
+  secret: 'teste-local-seguro-2026',
   resave: false,
   saveUninitialized: false,
-  proxy: true,
+  proxy: false,
   cookie: {
-    secure: true,
+    secure: false,
     httpOnly: true,
     sameSite: 'lax',
     maxAge: 86400000
@@ -86,7 +73,16 @@ app.use(session({
 }));
 
 // ------------------------------
-// UPLOAD DE FOTOS
+// CONFIGURAÇÕES GERAIS
+// ------------------------------
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static('public'));
+app.use('/fotos', express.static(caminhoPasta));
+app.set('view engine', 'ejs');
+
+// ------------------------------
+// UPLOAD DE ARQUIVOS
 // ------------------------------
 const armazenamento = multer.diskStorage({
   destination: (req, arq, cb) => cb(null, caminhoPasta),
@@ -95,61 +91,19 @@ const armazenamento = multer.diskStorage({
 const upload = multer({ storage: armazenamento, limits: { fileSize: 5 * 1024 * 1024 } });
 
 // ------------------------------
-// MIDDLEWARE DE ACESSO
+// MIDDLEWARE
 // ------------------------------
 function soLogado(req, res, next) {
   if (!req.session.usuario){
-    console.log('🔒 ACESSO NEGADO: usuário não logado em', req.path);
+    console.log('🔒 ACESSO NEGADO:', req.path);
     return res.redirect('/');
   }
   next();
 }
 
 // ------------------------------
-// ROTAS PÚBLICAS / CADASTRO DE USUÁRIO
+// ROTAS PÚBLICAS
 // ------------------------------
-app.get('/cadastrar-usuario', (req, res) => {
-  res.render('cadastrar-usuario', {
-    erro: null,
-    sucesso: req.query.sucesso || null,
-    usuarioLogado: req.session.usuario || null // só mostra se estiver, não exige
-  });
-});
-
-// ✅ SALVAR CADASTRO — NÃO PRECISA DE LOGIN
-app.post('/cadastrar-usuario', async (req, res) => {
-  try {
-    const { login, senha, nome, nivel } = req.body;
-
-    let nivelFinal = 'usuario';
-    // Se por acaso estiver logado como admin, permite escolher o nível
-    if (req.session.usuario && req.session.usuario.nivel === 'admin') {
-      nivelFinal = nivel || 'usuario';
-    }
-
-    const [existe] = await bd.execute(`SELECT id FROM usuarios WHERE login = ?`, [login]);
-    if (existe.length > 0) {
-      return res.render('cadastrar-usuario', { 
-        erro: 'Esse usuário já existe!', 
-        sucesso: null,
-        usuarioLogado: req.session.usuario || null 
-      });
-    }
-
-    // ✅ CRIPTOGRAFA A SENHA
-    const senhaCript = await bcrypt.hash(senha, 10);
-    await bd.execute(`INSERT INTO usuarios (login, senha, nome, nivel) VALUES (?, ?, ?, ?)`, 
-      [login, senhaCript, nome || login, nivelFinal]);
-
-    res.redirect('/?sucesso=Usuário criado com sucesso! Faça seu login.');
-  } catch (erro) {
-    res.render('cadastrar-usuario', { 
-      erro: 'Erro: ' + erro.message, 
-      sucesso: null,
-      usuarioLogado: req.session.usuario || null 
-    });
-  }
-});
 app.get('/', (req, res) => res.render('login', { erro: undefined, sucesso: req.query.sucesso || null }));
 
 app.post('/logar', async (req, res) => {
@@ -169,17 +123,162 @@ app.post('/logar', async (req, res) => {
   }
 });
 
-app.get('/inicial', soLogado, (req, res) => {
-  res.render('inicial', { usuario: req.session.usuario });
+app.get('/cadastrar-usuario', (req, res) => {
+  res.render('cadastrar-usuario', {
+    erro: null,
+    sucesso: req.query.sucesso || null,
+    usuarioLogado: req.session.usuario || null
+  });
 });
 
-app.get('/sair', (req, res) => {
-  req.session.destroy();
-  res.redirect('/');
+app.post('/cadastrar-usuario', async (req, res) => {
+  try {
+    const { login, senha, nome, nivel } = req.body;
+    let nivelFinal = 'usuario';
+    if (req.session.usuario && req.session.usuario.nivel === 'admin') {
+      nivelFinal = nivel || 'usuario';
+    }
+
+    const [existe] = await bd.execute(`SELECT id FROM usuarios WHERE login = ?`, [login]);
+    if (existe.length > 0) {
+      return res.render('cadastrar-usuario', { 
+        erro: 'Esse usuário já existe!', 
+        sucesso: null,
+        usuarioLogado: req.session.usuario || null 
+      });
+    }
+
+    const senhaCript = await bcrypt.hash(senha, 10);
+    await bd.execute(`INSERT INTO usuarios (login, senha, nome, nivel) VALUES (?, ?, ?, ?)`, 
+      [login, senhaCript, nome || login, nivelFinal]);
+
+    res.redirect('/?sucesso=Usuário criado com sucesso! Faça seu login.');
+  } catch (erro) {
+    res.render('cadastrar-usuario', { 
+      erro: 'Erro: ' + erro.message, 
+      sucesso: null,
+      usuarioLogado: req.session.usuario || null 
+    });
+  }
 });
 
 // ------------------------------
-// ROTAS TEMPORÁRIAS — USE UMA VEZ SÓ
+// ROTAS PROTEGIDAS
+// ------------------------------
+app.get('/inicial', soLogado, (req, res) => res.render('inicial', { usuario: req.session.usuario }));
+app.get('/sair', (req, res) => { req.session.destroy(); res.redirect('/'); });
+app.get('/cadastro', soLogado, (req, res) => res.render('cadastro', { pessoa: null, processos: [], usuario: req.session.usuario }));
+app.get('/busca', soLogado, (req, res) => res.render('busca', { usuario: req.session.usuario }));
+
+app.get('/editar/:id', soLogado, async (req, res) => {
+  const [p] = await bd.execute(`SELECT * FROM pessoas WHERE id = ?`, [req.params.id]);
+  const [proc] = await bd.execute(`SELECT * FROM processos_originais WHERE id_processo_unificado = ?`, [req.params.id]);
+  res.render('cadastro', { pessoa: p[0], processos: proc, usuario: req.session.usuario });
+});
+
+app.get('/ver/:id', soLogado, async (req, res) => {
+  try {
+    const [pessoas] = await bd.execute(`SELECT * FROM pessoas WHERE id = ?`, [req.params.id]);
+    const pessoa = pessoas[0];
+    if (!pessoa) return res.redirect('/busca');
+    
+    const [processos] = await bd.execute(`SELECT * FROM processos_originais WHERE id_processo_unificado = ? ORDER BY id`, [req.params.id]);
+    res.render('ver', { pessoa, processos, usuarioLogado: req.session.usuario });
+  } catch {
+    res.redirect('/busca');
+  }
+});
+
+app.get('/buscar-nomes', soLogado, async (req, res) => {
+  const termo = `%${req.query.nome || ''}%`;
+  const [linhas] = await bd.execute(`SELECT id, nome FROM pessoas WHERE nome LIKE ? AND ativo = 1 ORDER BY nome LIMIT 50`, [termo]);
+  res.json(linhas);
+});
+
+// ------------------------------
+// SALVAR CADASTRO / EDIÇÃO
+// ------------------------------
+app.post('/salvar', soLogado, upload.array('fotos', 10), async (req, res) => {
+  try {
+    const dados = req.body;
+    let fotos = dados.fotos_antigas || '';
+
+    if (req.files && req.files.length > 0) {
+      const novasFotos = req.files.map(f => f.filename).join(', ');
+      fotos = novasFotos;
+      if (dados.fotos_antigas) {
+        dados.fotos_antigas.split(',').map(f => f.trim()).filter(f => f).forEach(nome => {
+          fs.remove(path.join(caminhoPasta, nome));
+        });
+      }
+    }
+
+    const numsProc = Array.isArray(req.body.proc_numero) ? req.body.proc_numero : (req.body.proc_numero ? [req.body.proc_numero] : []);
+    const datasProc = Array.isArray(req.body.proc_data) ? req.body.proc_data : (req.body.proc_data ? [req.body.proc_data] : []);
+    const tipsProc = Array.isArray(req.body.proc_tipificacao) ? req.body.proc_tipificacao : (req.body.proc_tipificacao ? [req.body.proc_tipificacao] : []);
+    const descsProc = Array.isArray(req.body.proc_descricao) ? req.body.proc_descricao : (req.body.proc_descricao ? [req.body.proc_descricao] : []);
+
+    async function salvarProcessosOriginais(idPessoa) {
+      await bd.execute(`DELETE FROM processos_originais WHERE id_processo_unificado = ?`, [idPessoa]);
+      for(let i=0; i < numsProc.length; i++){
+        const num = (numsProc[i]||'').trim();
+        const dt = (datasProc[i]||'').trim();
+        const tip = (tipsProc[i]||'').trim();
+        const desc = (descsProc[i]||'').trim();
+        if(!num && !dt && !tip && !desc) continue;
+        await bd.execute(
+          `INSERT INTO processos_originais (id_processo_unificado,numero,data,tipificacao,descricao) 
+          VALUES (?,?,?,?,?)`,[idPessoa, num, dt || null, tip, desc]
+        );
+      }
+    }
+
+    if (dados.id) {
+      const [antigos] = await bd.execute(`SELECT * FROM pessoas WHERE id = ?`, [dados.id]);
+      const antigo = antigos[0];
+
+      await bd.execute(`UPDATE pessoas SET siapen=?,nome=?,cpf=?,rg=?,nascimento=?,mae=?,pai=?,cep=?,rua=?,numero=?,bairro=?,cidade=?,uf=?,complemento=?,processo_unificado=?,pena_total=?,data_progressao=?,fotos=? WHERE id=?`,
+        [dados.siapen,dados.nome,dados.cpf,dados.rg,dados.nascimento||null,dados.mae,dados.pai,dados.cep,dados.rua,dados.numero,dados.bairro,dados.cidade,dados.uf,dados.complemento,dados.processo_unificado,dados.pena_total,dados.data_progressao||null,fotos,dados.id]);
+
+      await bd.execute(`INSERT INTO auditoria (usuario,acao,id_pessoa,dados_anteriores,dados_novos) VALUES (?,?,?,?,?)`,
+        [req.session.usuario.login,'ALTERAÇÃO',dados.id,JSON.stringify(antigo),JSON.stringify({...dados,fotos})]);
+
+      await salvarProcessosOriginais(dados.id);
+      res.redirect('/busca');
+    } else {
+      const [result] = await bd.execute(`INSERT INTO pessoas (siapen,nome,cpf,rg,nascimento,mae,pai,cep,rua,numero,bairro,cidade,uf,complemento,processo_unificado,pena_total,data_progressao,fotos) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        [dados.siapen,dados.nome,dados.cpf,dados.rg,dados.nascimento||null,dados.mae,dados.pai,dados.cep,dados.rua,dados.numero,dados.bairro,dados.cidade,dados.uf,dados.complemento,dados.processo_unificado,dados.pena_total,dados.data_progressao||null,fotos]);
+
+      await bd.execute(`INSERT INTO auditoria (usuario,acao,id_pessoa,dados_novos) VALUES (?,?,?,?)`,
+        [req.session.usuario.login,'CADASTRO NOVO',result.insertId,JSON.stringify({...dados,fotos})]);
+
+      await salvarProcessosOriginais(result.insertId);
+      res.redirect('/busca');
+    }
+  } catch(erro) {
+    console.error('ERRO SALVAR:', erro);
+    res.send(`<h3>Erro: ${erro.message}</h3><a href="/cadastro">Voltar</a>`);
+  }
+});
+
+// ------------------------------
+// AÇÕES ADMINISTRATIVAS
+// ------------------------------
+app.post('/desativar/:id', soLogado, async (req, res) => {
+  await bd.execute(`UPDATE pessoas SET ativo=0 WHERE id=?`, [req.params.id]);
+  await bd.execute(`INSERT INTO auditoria VALUES (NULL,?,?,?,NULL,NULL,NOW())`, [req.session.usuario.login,'DESATIVAÇÃO',req.params.id]);
+  res.redirect('/busca');
+});
+
+app.post('/excluir/:id', soLogado, async (req, res) => {
+  if (req.session.usuario.nivel !== 'admin') return res.status(403).send('Acesso negado');
+  await bd.execute(`DELETE FROM pessoas WHERE id = ?`, [req.params.id]);
+  await bd.execute(`INSERT INTO auditoria (usuario,acao,id_pessoa) VALUES (?,?,?)`, [req.session.usuario.login,'EXCLUSÃO',req.params.id]);
+  res.redirect('/busca');
+});
+
+// ------------------------------
+// ROTAS TEMPORÁRIAS (USAR 1 VEZ)
 // ------------------------------
 app.get('/criar-tabelas', async (req, res) => {
   try {
@@ -247,131 +346,13 @@ app.get('/criar-admin', async (req, res) => {
 });
 
 // ------------------------------
-// ROTAS PROTEGIDAS
+// INICIA O SERVIDOR
 // ------------------------------
-app.get('/cadastro', soLogado, (req, res) => {
-  res.render('cadastro', { pessoa: null, processos: [], usuario: req.session.usuario });
-});
-
-app.get('/busca', soLogado, (req, res) => {
-  res.render('busca', { usuario: req.session.usuario });
-});
-
-app.get('/editar/:id', soLogado, async (req, res) => {
-  const [pessoas] = await bd.execute(`SELECT * FROM pessoas WHERE id = ?`, [req.params.id]);
-  const pessoa = pessoas[0];
-  const [processos] = await bd.execute(`SELECT numero,data,tipificacao,descricao FROM processos_originais WHERE id_processo_unificado = ? ORDER BY id`, [req.params.id]);
-  res.render('cadastro', { pessoa, processos, usuario: req.session.usuario });
-});
-
-app.get('/ver/:id', soLogado, async (req, res) => {
-  try {
-    const [pessoas] = await bd.execute(`SELECT * FROM pessoas WHERE id = ?`, [req.params.id]);
-    const pessoa = pessoas[0];
-    const [processos] = await bd.execute(`SELECT * FROM processos_originais WHERE id_processo_unificado = ? ORDER BY id`, [req.params.id]);
-    res.render('cadastro', { pessoa, processos, usuario: req.session.usuario, modoVisualizacao: true });
-  } catch {
-    res.redirect('/busca');
-  }
-});
-
-app.get('/buscar-nomes', soLogado, async (req, res) => {
-  const termo = `%${req.query.nome || ''}%`;
-  const [linhas] = await bd.execute(`SELECT id, nome FROM pessoas WHERE nome LIKE ? AND ativo = 1 ORDER BY nome LIMIT 50`, [termo]);
-  res.json(linhas);
-});
-
-// ------------------------------
-// SALVAR CADASTRO/ALTERAÇÃO
-// ------------------------------
-app.post('/salvar', soLogado, upload.array('fotos', 10), async (req, res) => {
-  try {
-    const dados = req.body;
-    let fotos = dados.fotos_antigas || '';
-
-    if (req.files && req.files.length > 0) {
-      const novasFotos = req.files.map(f => f.filename).join(', ');
-      fotos = novasFotos;
-      if (dados.fotos_antigas) {
-        // Apaga as fotos antigas corretamente
-        dados.fotos_antigas.split(',').map(f => f.trim()).filter(f => f).forEach(nome => {
-          fs.remove(path.join(caminhoPasta, nome));
-        });
-      }
-    }
-
-    const numsProc = Array.isArray(req.body.proc_numero) ? req.body.proc_numero : (req.body.proc_numero ? [req.body.proc_numero] : []);
-    const datasProc = Array.isArray(req.body.proc_data) ? req.body.proc_data : (req.body.proc_data ? [req.body.proc_data] : []);
-    const tipsProc = Array.isArray(req.body.proc_tipificacao) ? req.body.proc_tipificacao : (req.body.proc_tipificacao ? [req.body.proc_tipificacao] : []);
-    const descsProc = Array.isArray(req.body.proc_descricao) ? req.body.proc_descricao : (req.body.proc_descricao ? [req.body.proc_descricao] : []);
-
-    async function salvarProcessosOriginais(idPessoa) {
-      await bd.execute(`DELETE FROM processos_originais WHERE id_processo_unificado = ?`, [idPessoa]);
-      for(let i=0; i < numsProc.length; i++){
-        const num = (numsProc[i]||'').trim();
-        const dt = (datasProc[i]||'').trim();
-        const tip = (tipsProc[i]||'').trim();
-        const desc = (descsProc[i]||'').trim();
-        if(!num && !dt && !tip && !desc) continue;
-        await bd.execute(
-          `INSERT INTO processos_originais (id_processo_unificado,numero,data,tipificacao,descricao) 
-          VALUES (?,?,?,?,?)`,[idPessoa, num, dt || null, tip, desc]
-        );
-      }
-    }
-
-    if (dados.id) {
-      const [antigos] = await bd.execute(`SELECT * FROM pessoas WHERE id = ?`, [dados.id]);
-      const antigo = antigos[0];
-
-      await bd.execute(`UPDATE pessoas SET siapen=?,nome=?,cpf=?,rg=?,nascimento=?,mae=?,pai=?,cep=?,rua=?,numero=?,bairro=?,cidade=?,uf=?,complemento=?,processo_unificado=?,pena_total=?,data_progressao=?,fotos=? WHERE id=?`,
-        [dados.siapen,dados.nome,dados.cpf,dados.rg,dados.nascimento||null,dados.mae,dados.pai,dados.cep,dados.rua,dados.numero,dados.bairro,dados.cidade,dados.uf,dados.complemento,dados.processo_unificado,dados.pena_total,dados.data_progressao||null,fotos,dados.id]);
-
-      await bd.execute(`INSERT INTO auditoria (usuario,acao,id_pessoa,dados_anteriores,dados_novos) VALUES (?,?,?,?,?)`,
-        [req.session.usuario.login,'ALTERAÇÃO',dados.id,JSON.stringify(antigo),JSON.stringify({...dados,fotos})]);
-
-      await salvarProcessosOriginais(dados.id);
-      res.redirect('/busca');
-    } else {
-      const [result] = await bd.execute(`INSERT INTO pessoas (siapen,nome,cpf,rg,nascimento,mae,pai,cep,rua,numero,bairro,cidade,uf,complemento,processo_unificado,pena_total,data_progressao,fotos) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-        [dados.siapen,dados.nome,dados.cpf,dados.rg,dados.nascimento||null,dados.mae,dados.pai,dados.cep,dados.rua,dados.numero,dados.bairro,dados.cidade,dados.uf,dados.complemento,dados.processo_unificado,dados.pena_total,dados.data_progressao||null,fotos]);
-
-      await bd.execute(`INSERT INTO auditoria (usuario,acao,id_pessoa,dados_novos) VALUES (?,?,?,?)`,
-        [req.session.usuario.login,'CADASTRO NOVO',result.insertId,JSON.stringify({...dados,fotos})]);
-
-      await salvarProcessosOriginais(result.insertId);
-      res.redirect('/busca');
-    }
-  } catch(erro) {
-    console.error('ERRO SALVAR:', erro);
-    res.send(`<h3>Erro: ${erro.message}</h3><a href="/cadastro">Voltar</a>`);
-  }
-});
-
-// ------------------------------
-// DESATIVAR / EXCLUIR
-// ------------------------------
-app.post('/desativar/:id', soLogado, async (req, res) => {
-  await bd.execute(`UPDATE pessoas SET ativo = 0 WHERE id = ?`, [req.params.id]);
-  await bd.execute(`INSERT INTO auditoria (usuario,acao,id_pessoa) VALUES (?,?,?)`, [req.session.usuario.login,'DESATIVAÇÃO',req.params.id]);
-  res.redirect('/busca');
-});
-
-app.post('/excluir/:id', soLogado, async (req, res) => {
-  if (req.session.usuario.nivel !== 'admin') return res.status(403).send('Acesso negado');
-  await bd.execute(`DELETE FROM pessoas WHERE id = ?`, [req.params.id]);
-  await bd.execute(`INSERT INTO auditoria (usuario,acao,id_pessoa) VALUES (?,?,?)`, [req.session.usuario.login,'EXCLUSÃO',req.params.id]);
-  res.redirect('/busca');
-});
-
-// ===============================================================================================
-// ✅ INICIA O SERVIDOR
-// ===============================================================================================
 const porta = process.env.PORT || 3000;
-
 app.listen(porta, () => {
   console.log(`✅ Sistema rodando na porta ${porta}`);
-  console.log('🔑 Login padrão: admin / admin123');
+  console.log(`🔗 Acesse: http://localhost:${porta}`);
+  console.log(`🔑 Login padrão: admin / admin123`);
 }).on('error', (erro) => {
   console.error('❌ Erro ao iniciar servidor:', erro.message);
   process.exit(1);
