@@ -10,6 +10,15 @@ const fs = require('fs-extra');
 const app = express();
 const caminhoPasta = path.join(__dirname, 'pasta-fotos');
 
+//dados do Cloudinary
+require('dotenv').config(); // Carrega o .env automaticamente
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 // ✅ CRIA PASTA DE FOTOS AUTOMATICAMENTE SE NÃO EXISTIR
 fs.ensureDirSync(caminhoPasta);
 
