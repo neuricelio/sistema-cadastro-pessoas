@@ -1,5 +1,4 @@
 # Não envia esses arquivos/pastas
-node_modules/
 __pycache__/
 banco.sqlite
 .DS_Store
