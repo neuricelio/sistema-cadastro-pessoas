@@ -302,7 +302,7 @@ label { margin-bottom: 2px; }
 
 /* Área da Foto — LARGURA FIXA, NÃO MEXE NOS DADOS */
 .visualizacao-secao-foto {
-  flex: 0 0 180px; /* ✅ Largura FIXA — NÃO MUDA, NÃO EMPURRA */
+  flex: 0 0 150px; /* ✅ Largura FIXA — NÃO MUDA, NÃO EMPURRA */
   padding: 0;
   background: transparent;
   border: none;
