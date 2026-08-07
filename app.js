@@ -243,26 +243,22 @@ app.post('/salvar', soLogado, upload.array('fotos', 10), async (req, res) => {
     await conn.beginTransaction();
     const dados = req.body;
     let fotos = dados.fotos_antigas || '';
-
-    // ✅ SE ESTÁ ENVIANDO FOTO NOVA → APAGA A ANTIGA PRIMEIRO
     if (req.files && req.files.length > 0) {
-      // Apaga a foto antiga do Cloudinary
-      if (fotos) {
-        const linksAntigos = fotos.split(',').map(l => l.trim()).filter(l => l);
-        for (const linkAntigo of linksAntigos) {
-          // Extrai o public_id do link
-          const partes = linkAntigo.split('/');
-          const publicIdComExt = partes.slice(-2).join('/'); // pasta/nome.jpg
-          const publicId = publicIdComExt.replace(/\.[^.]+$/, ''); // sem extensão
-          
-          // Apaga no Cloudinary
-          await cloudinary.uploader.destroy(publicId)
-            .catch(() => {}); // ignora erro se não existir
+      let fotosNovas = [];
+      
+      for (const arquivo of req.files) {
+        // Apaga a foto antiga do Cloudinary se existir
+        if (dados.fotos_antigas) {
+          const linkAntigo = dados.fotos_antigas.trim();
+          const partes = linkAntigo.split('/upload/')[1]?.split('/');
+          if (partes) {
+            const publicId = partes.slice(1).join('/').replace(/\.[^.]+$/, '');
+            await cloudinary.uploader.destroy(publicId).catch(() => {});
+          }
         }
+        fotosNovas.push(arquivo.path);
       }
-
-      // Salva a NOVA foto
-      fotos = req.files.map(f => f.path).join(', ');
+      fotos = fotosNovas.join(', ');
     }
 
     // Trata processos
