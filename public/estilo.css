@@ -295,25 +295,32 @@ label { margin-bottom: 2px; }
   border: 1px solid #ddd;
   display: block;
 }
-/* Área da foto — SEPARADA, sem interferir nos campos */
+/* Área da foto — lado direito, tamanho controlado */
+.visualizacao-dados-fotos {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 12px;
+  align-items: flex-start;
+}
+
 .visualizacao-secao-foto {
-  margin-top: 15px;
-  padding: 12px;
+  flex: 0 0 220px; /* ← Largura fixa, não cresce */
+  padding: 10px;
   background: #f9f9f9;
   border: 1px solid #ddd;
   border-radius: 8px;
 }
 
 .visualizacao-secao-foto h4 {
-  margin: 0 0 10px 0;
+  margin: 0 0 8px 0;
   font-size: 14px;
   color: #2c3e50;
 }
 
 .visualizacao-fotos-lista img.foto-visualizacao {
-  max-width: 300px;
   width: 100%;
   height: auto;
+  max-width: 200px; /* ← Um pouquinho menor */
   object-fit: contain;
   border-radius: 6px;
   border: 1px solid #ddd;
