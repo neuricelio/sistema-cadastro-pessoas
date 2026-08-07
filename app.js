@@ -244,8 +244,8 @@ app.post('/salvar', soLogado, upload.array('fotos', 10), async (req, res) => {
 
     // ✅ Agora pegamos o LINK PERMANENTE do Cloudinary, não nome local
     if (req.files && req.files.length > 0) {
-      const novasFotos = req.files.map(f => f.path).join(', ');
-      fotos = novasFotos;
+      // TROCA a antiga pela NOVA, NÃO junta mais!
+      fotos = req.files.map(f => f.path).join(', ');
     }
 
     // Trata processos
