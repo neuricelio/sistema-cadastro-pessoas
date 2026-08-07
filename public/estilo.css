@@ -308,12 +308,28 @@ label { margin-bottom: 2px; }
   min-width: 0;
 }
 
-/* Caixa da foto — tamanho fixo, sem borda externa */
+/* Dados + Foto — LARGURAS FIXAS e bem divididas */
+.visualizacao-dados-fotos {
+  display: flex;
+  gap: 25px;
+  margin-bottom: 12px;
+  align-items: flex-start; /* ✅ ALINHA NO TOPO — NÃO EMPURRA NADA */
+  width: 100%;
+}
+
+/* Área dos Dados — OCUPA TODO O ESPAÇO RESTANTE */
+.visualizacao-dados {
+  flex: 1; /* ✅ Cresce e ocupa tudo que sobra */
+  min-width: 0; /* ✅ Evita transbordar */
+}
+
+/* Área da Foto — LARGURA FIXA, NÃO MEXE NOS DADOS */
 .visualizacao-secao-foto {
-  flex: 0 0 200px; /* ✅ Largura FIXA — nunca cresce */
-  padding: 0; /* ✅ Sem fundo, sem borda */
+  flex: 0 0 220px; /* ✅ Largura FIXA — NÃO MUDA, NÃO EMPURRA */
+  padding: 0;
   background: transparent;
   border: none;
+  margin: 0;
 }
 
 .visualizacao-secao-foto h4 {
@@ -322,14 +338,13 @@ label { margin-bottom: 2px; }
   color: #2c3e50;
 }
 
-/* Imagem — sem borda, tamanho controlado */
+/* Imagem — TAMANHO ORIGINAL BOM, SEM ALTERAR */
 .visualizacao-fotos-lista img.foto-visualizacao {
   width: 100%;
   height: auto;
-  max-width: 180px; /* ✅ Um pouquinho menor */
   object-fit: contain;
+  border: none;
   border-radius: 4px;
-  border: none; /* ✅ SEM BORDA na foto */
   display: block;
 }
 /* ==============================================
