@@ -158,6 +158,7 @@
         </div>
       </div>
 
+      <!-- ✅ ÁREA DE FOTOS — CORRIGIDO O CAMINHO DO CLOUDINARY -->
       <div class="caixa-fotos">
         <h4>Fotos</h4>
         <input type="file" name="fotos" multiple accept="image/*" id="campo-fotos" style="display:none;">
@@ -168,12 +169,15 @@
           <% if(pessoa && pessoa.fotos){ 
             const arrFotos = pessoa.fotos.split(',').map(f => f.trim()).filter(f => f);
             if(arrFotos.length > 0){
-              arrFotos.forEach(f => { %>
-                <img src="/fotos/<%= f %>" class="miniatura" alt="Foto salva" onerror="this.style.display='none'">
+              arrFotos.forEach(linkFoto => { %>
+                <!-- ✅ USA O LINK COMPLETO DO CLOUDINARY, NÃO ADICIONA /fotos/ -->
+                <img src="<%= linkFoto %>" class="miniatura" alt="Foto salva" onerror="this.style.display='none'">
             <% }); 
             } else { %>
               <div style="color:#888; font-size:13px;">Nenhuma foto válida salva</div>
-          <% } } %>
+          <% } } else { %>
+            <div style="color:#888; font-size:13px;">Sem foto cadastrada</div>
+          <% } %>
         </div>
       </div>
     </div>
