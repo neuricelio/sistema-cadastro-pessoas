@@ -5,22 +5,20 @@ const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const path = require('path');
 const session = require('express-session');
-const fs = require('fs-extra');
 
-const app = express();
-const caminhoPasta = path.join(__dirname, 'pasta-fotos');
-
-//dados do Cloudinary
-require('dotenv').config(); // Carrega o .env automaticamente
+// Carrega variáveis de ambiente (inclui dados do Cloudinary)
+require('dotenv').config();
 const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
+// Configuração do Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
-// ✅ CRIA PASTA DE FOTOS AUTOMATICAMENTE SE NÃO EXISTIR
-fs.ensureDirSync(caminhoPasta);
+
+const app = express();
 
 // ------------------------------
 // CONEXÃO BANCO — LOCAL E ONLINE
@@ -66,18 +64,18 @@ async function iniciarBanco(){
 iniciarBanco();
 
 // ------------------------------
-// 🛑 SESSÃO — CORRIGIDA PARA FUNCIONAR LOCAL E ONLINE
+// 🛑 SESSÃO
 // ------------------------------
 app.use(session({
   secret: process.env.SESSION_SECRET || 'sistema-cadastro-seguro-2026-alterar-em-producao',
   resave: false,
   saveUninitialized: false,
-  proxy: true, // ✅ Habilita para servidores online
+  proxy: true,
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // ✅ Automático: true se HTTPS, false se local
+    secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     sameSite: 'lax',
-    maxAge: 1000 * 60 * 60 * 24 // 1 dia
+    maxAge: 1000 * 60 * 60 * 24
   }
 }));
 
@@ -86,19 +84,25 @@ app.use(session({
 // ------------------------------
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-//app.use(express.static('public'));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/fotos', express.static(caminhoPasta));
 app.set('view engine', 'ejs');
 
 // ------------------------------
-// UPLOAD DE ARQUIVOS
+// 🆕 UPLOAD → DIRETO AO CLOUDINARY (sem pasta local!)
 // ------------------------------
-const armazenamento = multer.diskStorage({
-  destination: (req, arq, cb) => cb(null, caminhoPasta),
-  filename: (req, arq, cb) => cb(null, Date.now() + '-' + arq.originalname.replace(/\s+/g, '_'))
+const armazenamento = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'cadastros',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    transformation: [{ width: 1200, height: 1200, crop: 'limit' }]
+  }
 });
-const upload = multer({ storage: armazenamento, limits: { fileSize: 5 * 1024 * 1024 } });
+
+const upload = multer({
+  storage: armazenamento,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB
+});
 
 // ------------------------------
 // MIDDLEWARE DE PROTEÇÃO
@@ -126,15 +130,13 @@ app.post('/logar', async (req, res) => {
     const senhaCorreta = await bcrypt.compare(senha, usu.senha);
     if (!senhaCorreta) return res.render('login', { erro: 'Senha incorreta' });
 
-    // ✅ Salva os dados corretamente na sessão
-    req.session.usuario = { 
-      id: usu.id, 
-      login: usu.login, 
+    req.session.usuario = {
+      id: usu.id,
+      login: usu.login,
       nome: usu.nome || usu.login,
-      nivel: usu.nivel 
+      nivel: usu.nivel
     };
 
-    // ✅ Garante que a sessão está salva antes de redirecionar
     req.session.save((erroSalva) => {
       if (erroSalva) {
         console.error('❌ ERRO AO SALVAR SESSÃO:', erroSalva);
@@ -167,23 +169,23 @@ app.post('/cadastrar-usuario', async (req, res) => {
 
     const [existe] = await bd.execute(`SELECT id FROM usuarios WHERE login = ?`, [login]);
     if (existe.length > 0) {
-      return res.render('cadastrar-usuario', { 
-        erro: 'Esse usuário já existe!', 
+      return res.render('cadastrar-usuario', {
+        erro: 'Esse usuário já existe!',
         sucesso: null,
-        usuarioLogado: req.session.usuario || null 
+        usuarioLogado: req.session.usuario || null
       });
     }
 
     const senhaCript = await bcrypt.hash(senha, 10);
-    await bd.execute(`INSERT INTO usuarios (login, senha, nome, nivel) VALUES (?, ?, ?, ?)`, 
+    await bd.execute(`INSERT INTO usuarios (login, senha, nome, nivel) VALUES (?, ?, ?, ?)`,
       [login, senhaCript, nome || login, nivelFinal]);
 
     res.redirect('/?sucesso=Usuário criado com sucesso! Faça seu login.');
   } catch (erro) {
-    res.render('cadastrar-usuario', { 
-      erro: 'Erro: ' + erro.message, 
+    res.render('cadastrar-usuario', {
+      erro: 'Erro: ' + erro.message,
       sucesso: null,
-      usuarioLogado: req.session.usuario || null 
+      usuarioLogado: req.session.usuario || null
     });
   }
 });
@@ -207,18 +209,16 @@ app.get('/ver/:id', soLogado, async (req, res) => {
     const [pessoas] = await bd.execute(`SELECT * FROM pessoas WHERE id = ?`, [req.params.id]);
     const pessoa = pessoas[0];
     if (!pessoa) return res.redirect('/busca');
-    
-    // ✅ Consulta correta para pegar os processos
+
     const [processos] = await bd.execute(
-      `SELECT * FROM processos_originais WHERE id_processo_unificado = ? ORDER BY id`, 
+      `SELECT * FROM processos_originais WHERE id_processo_unificado = ? ORDER BY id`,
       [req.params.id]
     );
 
-    // ✅ Envia os nomes CORRETOS para a tela
-    res.render('ver', { 
-      pessoa, 
-      processos, 
-      usuarioLogado: req.session.usuario 
+    res.render('ver', {
+      pessoa,
+      processos,
+      usuarioLogado: req.session.usuario
     });
   } catch (erro) {
     console.error('ERRO NA TELA VER:', erro);
@@ -233,7 +233,7 @@ app.get('/buscar-nomes', soLogado, async (req, res) => {
 });
 
 // ------------------------------
-// SALVAR CADASTRO / EDIÇÃO
+// 💾 SALVAR CADASTRO / EDIÇÃO — COM LINKS PERMANENTES
 // ------------------------------
 app.post('/salvar', soLogado, upload.array('fotos', 10), async (req, res) => {
   const conn = await bd.getConnection();
@@ -242,13 +242,9 @@ app.post('/salvar', soLogado, upload.array('fotos', 10), async (req, res) => {
     const dados = req.body;
     let fotos = dados.fotos_antigas || '';
 
-    // 📂 Caminho das fotos (funciona em qualquer hospedagem)
-    const caminhoPasta = path.join(process.cwd(), 'public', 'uploads');
-
-    // Salva novas fotos, MAS NÃO TENTA APAGAR ANTIGAS (na nuvem a pasta é temporária)
-    // Se quiser manter exclusão, só funciona se usar armazenamento externo (S3, etc)
+    // ✅ Agora pegamos o LINK PERMANENTE do Cloudinary, não nome local
     if (req.files && req.files.length > 0) {
-      const novasFotos = req.files.map(f => f.filename).join(', ');
+      const novasFotos = req.files.map(f => f.path).join(', ');
       fotos = novasFotos;
     }
 
@@ -301,12 +297,11 @@ app.post('/salvar', soLogado, upload.array('fotos', 10), async (req, res) => {
 
   } catch(erro) {
     await conn.rollback();
-    console.error('❌ ERRO NO SALVAR:', erro.code, erro.message); // Veja o erro real nos LOGS do Render/Railway
+    console.error('❌ ERRO NO SALVAR:', erro.code, erro.message);
 
     let mensagemErro = 'Ocorreu um erro ao salvar, verifique os dados!';
     let tipoErro = 'erro';
 
-    // 🎯 Detecta duplicatas sem quebrar
     if (erro.code === 'ER_DUP_ENTRY') {
       if (erro.message.includes('pessoas.cpf')) {
         mensagemErro = `⚠️ O CPF ${dados.cpf} já está cadastrado no sistema!`;
@@ -322,7 +317,6 @@ app.post('/salvar', soLogado, upload.array('fotos', 10), async (req, res) => {
       mensagemErro = `❌ ${erro.message}`;
     }
 
-    // Volta para cadastro COM DADOS PREENCHIDOS e mensagem
     return res.render('cadastro', {
       pessoa: { ...dados, fotos },
       processos: numsProc.map((num, i) => ({
@@ -355,7 +349,7 @@ app.post('/excluir/:id', soLogado, async (req, res) => {
 });
 
 // ------------------------------
-// ROTAS TEMPORÁRIAS (USAR 1 VEZ)
+// ROTAS TEMPORÁRIAS
 // ------------------------------
 app.get('/criar-tabelas', async (req, res) => {
   try {
