@@ -16,7 +16,7 @@
   <form method="post" action="/salvar" enctype="multipart/form-data">
     <% if(pessoa) { %>
       <input type="hidden" name="id" value="<%= pessoa.id %>">
-      <input type="hidden" name="fotos_antigas" value="<%= pessoa.fotos || '' %>">        
+      <input type="hidden" name="fotos_antigas" value="<%= pessoa ? pessoa.fotos : '' %>">  
     <% } %>
 
     <div class="menu-abas">
