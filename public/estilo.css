@@ -285,29 +285,6 @@ textarea { resize: vertical; min-height: 60px; }
 
 label { margin-bottom: 2px; }
 
-/* Foto na visualização — maior, sem cortes e fixa */
-.visualizacao-fotos-lista img.foto-visualizacao {
-  max-width: 240px;
-  width: 100%;
-  height: auto;
-  object-fit: contain; /* ← EXIBE FOTO INTEIRA, SEM CORTES */
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  display: block;
-}
-/* Dados + Foto — lado a lado, alinhados NO TOPO */
-.visualizacao-dados-fotos {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 12px;
-  align-items: flex-start; /* ✅ ALINHA NO TOPO — não empurra nada */
-}
-
-.visualizacao-dados {
-  flex: 1; /* ✅ Ocupa espaço restante */
-  min-width: 0;
-}
-
 /* Dados + Foto — LARGURAS FIXAS e bem divididas */
 .visualizacao-dados-fotos {
   display: flex;
@@ -347,6 +324,7 @@ label { margin-bottom: 2px; }
   border-radius: 4px;
   display: block;
 }
+
 /* ==============================================
    REGRAS FINAIS — CAMPOS SEM BORDA (PRIORIDADE MÁXIMA)
 ============================================== */
