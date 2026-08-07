@@ -68,17 +68,14 @@
           </div>
         </div>
 
-        <!-- 📸 FOTO MAIOR E COMPLETA — SEM CORTES -->
+        <!-- FOTO → usa classe do CSS, sem estilo inline, sem cortes -->
         <div class="visualizacao-fotos">
           <h4>Foto</h4>
           <div class="visualizacao-fotos-lista">
             <% if (pessoa && pessoa.fotos) {
               const linkFoto = pessoa.fotos.trim().split(',')[0].trim();
               if (linkFoto) { %>
-                <img 
-                  src="<%= linkFoto %>" 
-                  alt="Foto do cadastro"
-                  style="max-width: 280px; width: 100%; height: auto; border-radius: 8px; border: 1px solid #ddd; display: block;">
+                <img src="<%= linkFoto %>" alt="Foto do cadastro" class="foto-visualizacao">
             <% } } else { %>
               <p style="color:#888; font-size:13px;">Sem foto cadastrada</p>
             <% } %>
