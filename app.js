@@ -24,17 +24,16 @@ const app = express();
 // CONEXÃO BANCO — LOCAL E ONLINE
 // ------------------------------
 const bd = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
+  host: process.env.DB_HOST || 'interchange.proxy.rlwy.net',
+  port: process.env.DB_PORT || 39683,
   user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASS || '',
-  database: process.env.DB_NAME || 'sistema_cadastro',
-  port: process.env.DB_PORT || 3306,
+  password: process.env.DB_PASS || 'iFiVOwPfibMwAkINDvVpxhAuGyFDTOgm',
+  database: process.env.DB_NAME || 'railway',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
   enableKeepAlive: true,
   keepAliveInitialDelay: 10000,
-  reconnect: true
 });
 
 // Inicializa banco e usuário admin automaticamente
