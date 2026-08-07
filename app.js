@@ -89,21 +89,15 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 
-// ------------------------------
+// ----------------------------------------------------
 // 🆕 UPLOAD → DIRETO AO CLOUDINARY (sem pasta local!)
-// ------------------------------
+// ----------------------------------------------------
 const armazenamento = new CloudinaryStorage({
-  cloudinary: cloudinary,[
-  params: (req, file)=>{
-    // Pega o ID da pessoa se for edição, ou gera temporário se for novo
-    const idPessoa = req.params.id || req.body.id || Date.now();
-    return{
-      folder: 'cadastros',
-      public_id: `pessoa-${idPessoa}`, // ← NOME FIXO por pessoa!
-      allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-      overwrite: true, // ✅ SUBSTITUI se já existir!
-      transformation: [{ width: 1200, height: 1200, crop: 'limit' }]
-    },
+  cloudinary: cloudinary,
+  params: {
+    folder: 'cadastros',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    transformation: [{ width: 1200, height: 1200, crop: 'limit' }]
   }
 });
 
