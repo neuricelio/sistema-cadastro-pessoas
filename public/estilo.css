@@ -458,5 +458,9 @@ body.tela-login .caixa-login button {
   margin-top: 4px;
 }
 body.tela-login .caixa-login button:hover { filter: brightness(0.92); }
+body.tela-login .botao-cadastrar {
+  margin-top: 12px; /* ✅ Ajuste o valor para mais ou menos afastamento */
+  display: inline-block; /* Garante que a margem funcione corretamente */
+}
 
 .container.caixa-login { max-width: 380px; margin: 30px auto; }
