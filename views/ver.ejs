@@ -68,13 +68,19 @@
           </div>
         </div>
 
+        <!-- 📸 FOTO MAIOR E COMPLETA — SEM CORTES -->
         <div class="visualizacao-fotos">
-          <h4>Fotos</h4>
+          <h4>Foto</h4>
           <div class="visualizacao-fotos-lista">
-            <% if (pessoa && pessoa.fotos) { %>
-              <img src="<%= pessoa.fotos.trim().split(',')[0].trim() %>" alt="Foto do cadastro" class="miniatura">
-            <% } else { %>
-              <p>Sem foto cadastrada</p>
+            <% if (pessoa && pessoa.fotos) {
+              const linkFoto = pessoa.fotos.trim().split(',')[0].trim();
+              if (linkFoto) { %>
+                <img 
+                  src="<%= linkFoto %>" 
+                  alt="Foto do cadastro"
+                  style="max-width: 280px; width: 100%; height: auto; border-radius: 8px; border: 1px solid #ddd; display: block;">
+            <% } } else { %>
+              <p style="color:#888; font-size:13px;">Sem foto cadastrada</p>
             <% } %>
           </div>
         </div>
@@ -192,20 +198,6 @@
 
   <div class="data-hora-fixa" id="data-hora-fixa"></div>
 
-<script src="/script.js"></script>
-<script>
-function atualizarDataHora(){
-  const agora = new Date();
-  const dia = String(agora.getDate()).padStart(2,'0');
-  const mes = String(agora.getMonth()+1).padStart(2,'0');
-  const ano = agora.getFullYear();
-  const hora = String(agora.getHours()).padStart(2,'0');
-  const min = String(agora.getMinutes()).padStart(2,'0');
-  const seg = String(agora.getSeconds()).padStart(2,'0');
-  document.getElementById('data-hora-fixa').innerText = `${dia}/${mes}/${ano} ${hora}:${min}:${seg}`;
-}
-atualizarDataHora();
-setInterval(atualizarDataHora, 1000);
-</script>
+  <script src="/script.js"></script>
 </body>
 </html>
