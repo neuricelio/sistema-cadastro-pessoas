@@ -285,6 +285,16 @@ textarea { resize: vertical; min-height: 60px; }
 
 label { margin-bottom: 2px; }
 
+/* Foto na visualização — maior, sem cortes e fixa */
+.visualizacao-fotos-lista img.foto-visualizacao {
+  max-width: 240px;
+  width: 100%;
+  height: auto;
+  object-fit: contain; /* ← EXIBE FOTO INTEIRA, SEM CORTES */
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  display: block;
+}
 /* ==============================================
    REGRAS FINAIS — CAMPOS SEM BORDA (PRIORIDADE MÁXIMA)
 ============================================== */
