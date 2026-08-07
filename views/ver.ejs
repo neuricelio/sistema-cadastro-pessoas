@@ -16,70 +16,69 @@
   <div class="area-principal">
     <div class="dados-form">
 
-      <div class="visualizacao-dados-fotos">
-        <div class="visualizacao-dados">
-          <h3 class="visualizacao-titulo-secao">Dados Pessoais</h3>
-          <div class="linha">
-            <div class="grupo pequeno">
-              <label>Siapen:</label>
-              <input type="text" value="<%= pessoa?.siapen || '' %>" readonly disabled class="visualizacao-input">
-            </div>
-            <div class="grupo grande">
-              <label>Nome Completo:</label>
-              <input type="text" value="<%= pessoa?.nome || '' %>" readonly disabled class="visualizacao-input">
-            </div>
+      <!-- DADOS PESSOAIS → lado esquerdo, sem foto junto -->
+      <div class="visualizacao-dados">
+        <h3 class="visualizacao-titulo-secao">Dados Pessoais</h3>
+        <div class="linha">
+          <div class="grupo pequeno">
+            <label>Siapen:</label>
+            <input type="text" value="<%= pessoa?.siapen || '' %>" readonly disabled class="visualizacao-input">
           </div>
-
-          <div class="linha">
-            <div class="grupo medio">
-              <label>CPF:</label>
-              <input type="text" value="<%= pessoa?.cpf || '' %>" readonly disabled class="visualizacao-input">
-            </div>
-            <div class="grupo medio">
-              <label>RG:</label>
-              <input type="text" value="<%= pessoa?.rg || '' %>" readonly disabled class="visualizacao-input">
-            </div>
-            <div class="grupo pequeno">
-              <label>Data Nasc.:</label>
-              <% if(pessoa?.nascimento){
-                const d = new Date(pessoa.nascimento);
-                const dia = String(d.getDate()).padStart(2,'0');
-                const mes = String(d.getMonth()+1).padStart(2,'0');
-                const ano = d.getFullYear(); %>
-                <input type="text" value="<%= dia %>/<%= mes %>/<%= ano %>" readonly disabled class="visualizacao-input">
-              <% } else { %>
-                <input type="text" value="" placeholder="Não informada" readonly disabled class="visualizacao-input">
-              <% } %>
-            </div>
-          </div>
-
-          <div class="linha">
-            <div class="grupo largo">
-              <label>Nome da Mãe:</label>
-              <input type="text" value="<%= pessoa?.mae || '' %>" readonly disabled class="visualizacao-input">
-            </div>
-          </div>
-
-          <div class="linha">
-            <div class="grupo largo">
-              <label>Nome do Pai:</label>
-              <input type="text" value="<%= pessoa?.pai || '' %>" readonly disabled class="visualizacao-input">
-            </div>
+          <div class="grupo grande">
+            <label>Nome Completo:</label>
+            <input type="text" value="<%= pessoa?.nome || '' %>" readonly disabled class="visualizacao-input">
           </div>
         </div>
 
-        <!-- FOTO → usa classe do CSS, sem estilo inline, sem cortes -->
-        <div class="visualizacao-fotos">
-          <h4>Foto</h4>
-          <div class="visualizacao-fotos-lista">
-            <% if (pessoa && pessoa.fotos) {
-              const linkFoto = pessoa.fotos.trim().split(',')[0].trim();
-              if (linkFoto) { %>
-                <img src="<%= linkFoto %>" alt="Foto do cadastro" class="foto-visualizacao">
-            <% } } else { %>
-              <p style="color:#888; font-size:13px;">Sem foto cadastrada</p>
+        <div class="linha">
+          <div class="grupo medio">
+            <label>CPF:</label>
+            <input type="text" value="<%= pessoa?.cpf || '' %>" readonly disabled class="visualizacao-input">
+          </div>
+          <div class="grupo medio">
+            <label>RG:</label>
+            <input type="text" value="<%= pessoa?.rg || '' %>" readonly disabled class="visualizacao-input">
+          </div>
+          <div class="grupo pequeno">
+            <label>Data Nasc.:</label>
+            <% if(pessoa?.nascimento){
+              const d = new Date(pessoa.nascimento);
+              const dia = String(d.getDate()).padStart(2,'0');
+              const mes = String(d.getMonth()+1).padStart(2,'0');
+              const ano = d.getFullYear(); %>
+              <input type="text" value="<%= dia %>/<%= mes %>/<%= ano %>" readonly disabled class="visualizacao-input">
+            <% } else { %>
+              <input type="text" value="" placeholder="Não informada" readonly disabled class="visualizacao-input">
             <% } %>
           </div>
+        </div>
+
+        <div class="linha">
+          <div class="grupo largo">
+            <label>Nome da Mãe:</label>
+            <input type="text" value="<%= pessoa?.mae || '' %>" readonly disabled class="visualizacao-input">
+          </div>
+        </div>
+
+        <div class="linha">
+          <div class="grupo largo">
+            <label>Nome do Pai:</label>
+            <input type="text" value="<%= pessoa?.pai || '' %>" readonly disabled class="visualizacao-input">
+          </div>
+        </div>
+      </div>
+
+      <!-- ✅ FOTO → ÁREA SEPARADA, ABAIXO DOS DADOS -->
+      <div class="visualizacao-secao-foto">
+        <h4>Foto</h4>
+        <div class="visualizacao-fotos-lista">
+          <% if (pessoa && pessoa.fotos) {
+            const linkFoto = pessoa.fotos.trim().split(',')[0].trim();
+            if (linkFoto) { %>
+              <img src="<%= linkFoto %>" alt="Foto do cadastro" class="foto-visualizacao">
+          <% } } else { %>
+            <p style="color:#888; font-size:13px; margin:0;">Sem foto cadastrada</p>
+          <% } %>
         </div>
       </div>
 
