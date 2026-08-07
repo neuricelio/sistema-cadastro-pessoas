@@ -93,11 +93,17 @@ app.set('view engine', 'ejs');
 // 🆕 UPLOAD → DIRETO AO CLOUDINARY (sem pasta local!)
 // ------------------------------
 const armazenamento = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: 'cadastros',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-    transformation: [{ width: 1200, height: 1200, crop: 'limit' }]
+  cloudinary: cloudinary,[
+  params: (req, file)=>{
+    // Pega o ID da pessoa se for edição, ou gera temporário se for novo
+    const idPessoa = req.params.id || req.body.id || Date.now();
+    return{
+      folder: 'cadastros',
+      public_id: `pessoa-${idPessoa}`, // ← NOME FIXO por pessoa!
+      allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+      overwrite: true, // ✅ SUBSTITUI se já existir!
+      transformation: [{ width: 1200, height: 1200, crop: 'limit' }]
+    },
   }
 });
 
@@ -244,9 +250,24 @@ app.post('/salvar', soLogado, upload.array('fotos', 10), async (req, res) => {
     const dados = req.body;
     let fotos = dados.fotos_antigas || '';
 
-    // ✅ Agora pegamos o LINK PERMANENTE do Cloudinary, não nome local
+    // ✅ SE ESTÁ ENVIANDO FOTO NOVA → APAGA A ANTIGA PRIMEIRO
     if (req.files && req.files.length > 0) {
-      // TROCA a antiga pela NOVA, NÃO junta mais!
+      // Apaga a foto antiga do Cloudinary
+      if (fotos) {
+        const linksAntigos = fotos.split(',').map(l => l.trim()).filter(l => l);
+        for (const linkAntigo of linksAntigos) {
+          // Extrai o public_id do link
+          const partes = linkAntigo.split('/');
+          const publicIdComExt = partes.slice(-2).join('/'); // pasta/nome.jpg
+          const publicId = publicIdComExt.replace(/\.[^.]+$/, ''); // sem extensão
+          
+          // Apaga no Cloudinary
+          await cloudinary.uploader.destroy(publicId)
+            .catch(() => {}); // ignora erro se não existir
+        }
+      }
+
+      // Salva a NOVA foto
       fotos = req.files.map(f => f.path).join(', ');
     }
 
