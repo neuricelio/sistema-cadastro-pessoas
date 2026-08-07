@@ -31,7 +31,10 @@ const bd = mysql.createPool({
   port: process.env.DB_PORT || 3306,
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 10000,
+  reconnect: true
 });
 
 // Inicializa banco e usuário admin automaticamente
