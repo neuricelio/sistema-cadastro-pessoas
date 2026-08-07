@@ -71,13 +71,10 @@
         <div class="visualizacao-fotos">
           <h4>Fotos</h4>
           <div class="visualizacao-fotos-lista">
-            <% if (pessoa.fotos) { 
-              const listaFotos = pessoa.fotos.split(',').map(f => f.trim()).filter(f => f);
-              listaFotos.forEach(foto => { %>
-                <img src="/fotos/<%= foto %>" class="miniatura" alt="Foto">
-              <% }); 
-            } else { %>
-              <p>Nenhuma foto cadastrada</p>
+            <% if (pessoa && pessoa.fotos) { %>
+              <img src="<%= pessoa.fotos.trim() %>" alt="Foto do cadastro" style="max-width: 400px; border-radius: 8px;">
+            <% } else { %>
+              <p>Sem foto cadastrada</p>
             <% } %>
           </div>
         </div>
