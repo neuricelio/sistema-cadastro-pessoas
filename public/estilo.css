@@ -97,11 +97,12 @@ h3, h4 {
   border-radius: 8px;
   border: 1px solid #ddd;
 }
-/* Foto salva na tela de cadastro/edição — tamanho ajustado */
+/* Foto salva na tela de cadastro/edição — 140px e SEM cortes */
 .caixa-fotos .miniatura {
-  width: 140px;  /* ✅ Ajuste aqui: 100px menor / 160px maior */
-  height: 140px; /* ✅ Mantenha igual à largura para quadrado */
-  object-fit: cover;
+  width: 140px;
+  height: 140px;
+  object-fit: contain; /* ✅ FOTO INTEIRA VISÍVEL, SEM CORTES */
+  background: #f8f8f8; /* Fundo para preencher espaços vazios */
   border-radius: 4px;
   border: 1px solid #ddd;
 }
