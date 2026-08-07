@@ -72,7 +72,7 @@
           <h4>Fotos</h4>
           <div class="visualizacao-fotos-lista">
             <% if (pessoa && pessoa.fotos) { %>
-              <img src="<%= pessoa.fotos.trim().split(',')[0].trim() %>" alt="Foto do cadastro" style="max-width: 400px; border-radius: 8px;">
+              <img src="<%= pessoa.fotos.trim().split(',')[0].trim() %>" alt="Foto do cadastro" class="miniatura">
             <% } else { %>
               <p>Sem foto cadastrada</p>
             <% } %>
